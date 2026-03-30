@@ -1,0 +1,84 @@
+<div class="landing-page">
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-nav">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" routerLink="/">
+        <div class="logo-icon">
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <span class="logo-text">SmartSure</span>
+      </a>
+      <div class="d-flex gap-3">
+        <a routerLink="/login" class="nav-link text-white fw-bold">Sign In</a>
+        <a routerLink="/register" class="btn btn-light rounded-pill px-4 fw-bold">Customer Sign Up</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero-section">
+    <div class="hero-content text-center container">
+      <div class="badge-pill mb-3">AI-Powered Insurance</div>
+      <h1 class="hero-title mb-4">Secure Your Future with <span class="gradient-text">SmartSure</span></h1>
+      <p class="hero-subtitle mb-5">
+        Experience the next generation of insurance management. 
+        Instant claims, transparent policies, and complete peace of mind.
+      </p>
+      
+      <div class="auth-options d-flex justify-content-center gap-4 flex-wrap">
+        <!-- Customer Login Card -->
+        <div class="auth-card glass-morphism" routerLink="/login">
+          <div class="card-icon customer">
+            <i class="bi bi-person-badge"></i>
+          </div>
+          <h3>Customer Portal</h3>
+          <p>Manage your policies, track claims, and get instant support.</p>
+          <button class="btn btn-gradient rounded-pill w-100">Sign In as Customer</button>
+        </div>
+
+        <!-- Admin Login Card -->
+        <div class="auth-card glass-morphism admin-card" routerLink="/login">
+          <div class="card-icon admin">
+            <i class="bi bi-shield-lock"></i>
+          </div>
+          <h3>Admin Panel</h3>
+          <p>Review claims, audit logs, and manage the insurance catalog.</p>
+          <button class="btn btn-outline-light rounded-pill w-100">Sign In as Admin</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Decoration -->
+    <div class="bg-decoration">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+  </header>
+
+  <!-- Statistics Section -->
+  <section class="stats-section py-5">
+    <div class="container">
+      <div class="row g-4 text-center">
+        <div class="col-md-4">
+          <div class="stat-item">
+            <h2>50k+</h2>
+            <p>Active Policies</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-item">
+            <h2>98%</h2>
+            <p>Claims Approved</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-item">
+            <h2>24/7</h2>
+            <p>Expert Support</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
