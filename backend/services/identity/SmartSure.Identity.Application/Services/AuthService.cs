@@ -49,6 +49,112 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
+    public async Task<Result> RegisterWithOtpAsync(RegisterDto dto)
+    {
+        _logger.LogDebug("RegisterWithOtpAsync called for {Email}", dto.Email);
+        _logger.LogTrace("[VERBOSE] RegisterWithOtpAsync payload: {@Dto}", dto);
+        var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
+        if (existingUser != null)
+        {
+            _logger.LogWarning("Attempt to register with existing email: {Email}", dto.Email);
+            return Result.Failure("Email is already registered.");
+        }
+
+        var user = new User
+        {
+            UserId = Guid.NewGuid(),
+            Email = dto.Email,
+            FullName = dto.FullName,
+            IsEmailVerified = false,
+            Phone = dto.Phone // Set phone if provided
+        };
+
+        var defaultRole = await _roleRepository.GetByNameAsync("Policyholder");
+        if (defaultRole == null)
+        {
+            return Result.Failure("Default role 'Policyholder' not found. Please contact support.");
+        }
+
+        user.UserRoles.Add(new UserRole { RoleId = defaultRole.RoleId });
+
+        user.Passwords.Add(new Password
+        {
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
+        });
+
+        await _userRepository.AddAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        // Generate and send OTP
+        var otpResult = await _otpService.GenerateOtpAsync(dto.Email);
+        if (!otpResult.IsSuccess) return Result.Failure(otpResult.ErrorMessage!);
+        await _emailService.SendEmailAsync(dto.Email, "Verify Your SmartSure Account",
+            $"Welcome to SmartSure! Your OTP code is {otpResult.Data}. It expires in 10 minutes.");
+
+        try
+        {
+            await _publishEndpoint.Publish(new UserRegisteredEvent(
+                user.UserId, user.FullName, user.Email, defaultRole.Name, DateTime.UtcNow));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to publish UserRegisteredEvent for user {Email}. Admin DB will NOT reflect this user until the event is re-published.", user.Email);
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> ResendVerificationOtpAsync(string email)
+    {
+        _logger.LogDebug("ResendVerificationOtpAsync called for {Email}", email);
+        var user = await _userRepository.GetByEmailAsync(email);
+        if (user == null || user.IsEmailVerified) {
+            _logger.LogWarning("Resend OTP failed: user not found or already verified for {Email}", email);
+            return Result.Failure("User not found or already verified.");
+        }
+
+        // Generate and send OTP
+        var otpResult = await _otpService.GenerateOtpAsync(email);
+        if (!otpResult.IsSuccess) {
+            _logger.LogError("Failed to generate OTP for {Email}: {Error}", email, otpResult.ErrorMessage);
+            return Result.Failure(otpResult.ErrorMessage!);
+        }
+        await _emailService.SendEmailAsync(email, "Verify Your SmartSure Account",
+            $"Your OTP code is {otpResult.Data}. It expires in 10 minutes.");
+
+        _logger.LogTrace("[VERBOSE] OTP resent to {Email}", email);
+        return Result.Success();
+    }
+
+    public async Task<Result> VerifyRegistrationOtpAsync(VerifyOtpDto dto)
+    {
+        _logger.LogDebug("VerifyRegistrationOtpAsync called for {Email}", dto.Email);
+        var validResult = await _otpService.ValidateOtpAsync(dto.Email, dto.OtpCode);
+        if (!validResult.IsSuccess) {
+            _logger.LogWarning("OTP validation failed for {Email}: {Error}", dto.Email, validResult.ErrorMessage);
+            return Result.Failure(validResult.ErrorMessage!);
+        }
+
+        var user = await _userRepository.GetByEmailAsync(dto.Email);
+        if (user == null) {
+            _logger.LogWarning("User not found for OTP verification: {Email}", dto.Email);
+            return Result.Failure("User not found.");
+        }
+        if (user.IsEmailVerified) {
+            _logger.LogInformation("User already verified: {Email}", dto.Email);
+            return Result.Failure("User already verified.");
+        }
+
+        user.IsEmailVerified = true;
+        await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        _logger.LogTrace("[VERBOSE] User {Email} verified successfully", dto.Email);
+        return Result.Success();
+    }
+
+    // ...rest of the AuthService methods...
+
     public async Task<Result> RegisterAsync(RegisterDto dto)
     {
         var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
@@ -120,7 +226,9 @@ public class AuthService : IAuthService
             return Result<LoginResponseDto>.Failure("Invalid credentials.");
 
         var roles = user.UserRoles.Select(ur => ur.Role!.Name).ToList();
-        var token = _jwtTokenGenerator.GenerateToken(user.UserId, user.Email, roles);
+        var accessToken = _jwtTokenGenerator.GenerateToken(user.UserId, user.Email, roles);
+        // Generate stateless refresh token (minimal claims, 2 days expiry)
+        var refreshToken = _jwtTokenGenerator.GenerateRefreshToken(user.UserId, user.Email, 2880); // 2 days
 
         // Fire-and-forget — RabbitMQ unavailability must never block login
         _ = Task.Run(async () =>
@@ -132,7 +240,7 @@ public class AuthService : IAuthService
             catch { /* swallow — non-critical */ }
         });
 
-        return Result<LoginResponseDto>.Success(new LoginResponseDto(token, user.Email, user.FullName, roles.ToArray()));
+        return Result<LoginResponseDto>.Success(new LoginResponseDto(accessToken, refreshToken, user.Email, user.FullName, roles.ToArray()));
     }
 
     public async Task<Result> LogoutAsync(Guid userId, string token)
@@ -266,5 +374,40 @@ public class AuthService : IAuthService
     {
         // Delegate to GoogleAuthService
         throw new NotImplementedException("Google OAuth handled by IGoogleAuthService.");
+    }
+
+    public async Task<Result<LoginResponseDto>> RefreshTokenAsync(string refreshToken)
+    {
+        // Validate the refresh token (must be a valid JWT, with purpose=refresh, not expired)
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        System.IdentityModel.Tokens.Jwt.JwtSecurityToken? jwt = null;
+        try
+        {
+            jwt = handler.ReadJwtToken(refreshToken);
+        }
+        catch
+        {
+            return Result<LoginResponseDto>.Failure("Invalid refresh token format.");
+        }
+
+        var purposeClaim = jwt.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
+        if (purposeClaim != "refresh")
+            return Result<LoginResponseDto>.Failure("Invalid refresh token purpose.");
+
+        var userIdStr = jwt.Claims.FirstOrDefault(c => c.Type == System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+        var email = jwt.Claims.FirstOrDefault(c => c.Type == System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email)?.Value;
+        if (!Guid.TryParse(userIdStr, out var userId) || string.IsNullOrEmpty(email))
+            return Result<LoginResponseDto>.Failure("Invalid refresh token claims.");
+
+        // Optionally: check user still exists and is active
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || !user.IsActive)
+            return Result<LoginResponseDto>.Failure("User not found or inactive.");
+
+        var roles = user.UserRoles.Select(ur => ur.Role!.Name).ToList();
+        var accessToken = _jwtTokenGenerator.GenerateToken(user.UserId, user.Email, roles);
+        var newRefreshToken = _jwtTokenGenerator.GenerateRefreshToken(user.UserId, user.Email, 2880); // 2 days
+
+        return Result<LoginResponseDto>.Success(new LoginResponseDto(accessToken, newRefreshToken, user.Email, user.FullName, roles.ToArray()));
     }
 }

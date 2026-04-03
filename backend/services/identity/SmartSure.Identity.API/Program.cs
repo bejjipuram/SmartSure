@@ -153,6 +153,9 @@ builder.Services.AddSingleton<IJwtTokenGenerator>(sp =>
 
 var app = builder.Build();
 
+// Add the user enricher middleware before everything else
+app.UseMiddleware<SerilogUserEnricherMiddleware>();
+
 // Seed database
 using (var scope = app.Services.CreateScope())
 {

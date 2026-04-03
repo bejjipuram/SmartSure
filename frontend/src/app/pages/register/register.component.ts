@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { COUNTRY_CODES } from '../../models/country-codes';
 
 @Component({
   selector: 'app-register',
@@ -34,6 +35,17 @@ import { AuthService } from '../../services/auth.service';
           <div class="mb-3">
             <label class="form-label fw-medium small">Email address</label>
             <input type="email" class="form-control" [(ngModel)]="email" name="email" required placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium small">Country Code</label>
+            <select class="form-select" [(ngModel)]="countryCode" name="countryCode" required>
+              <option *ngFor="let c of countryCodes" [value]="c.code">{{ c.name }} ({{ c.code }})</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium small">Phone Number</label>
+            <input type="tel" class="form-control" [(ngModel)]="phone" name="phone" required pattern="\d{7,15}" placeholder="1234567890">
+            <div *ngIf="phone && !validatePhone(phone)" class="text-danger small mt-1">Enter a valid phone number (digits only, 7-15 digits).</div>
           </div>
           <div class="mb-3">
             <label class="form-label fw-medium small">Password</label>
@@ -83,19 +95,47 @@ export class RegisterComponent {
   email = '';
   password = '';
   confirmPassword = '';
+  countryCode = '+1';
+  phone = '';
   showPassword = false;
   loading = false;
   error = '';
+  countryCodes = COUNTRY_CODES;
 
   constructor(private auth: AuthService, private router: Router) {}
 
+  validatePhone(phone: string): boolean {
+    // Basic phone validation: digits only, length 7-15
+    return /^\d{7,15}$/.test(phone);
+  }
+
   onSubmit(): void {
     this.error = '';
-    if (this.password !== this.confirmPassword) { this.error = 'Passwords do not match.'; return; }
+    if (this.password !== this.confirmPassword) {
+      this.error = 'Passwords do not match.';
+      return;
+    }
+    if (!this.validatePhone(this.phone)) {
+      this.error = 'Please enter a valid phone number (digits only, 7-15 digits).';
+      return;
+    }
     this.loading = true;
-    this.auth.register({ fullName: this.fullName, email: this.email, password: this.password }).subscribe({
-      next: () => { alert('Registration successful! Please check your email to verify.'); this.router.navigate(['/login']); },
-      error: (err) => { this.error = err?.error?.errorMessage ?? err?.error?.message ?? 'Registration failed.'; this.loading = false; }
+    // Store password in sessionStorage for auto-login after verification
+    sessionStorage.setItem('pending_reg_password', this.password);
+    this.auth.register({
+      fullName: this.fullName,
+      email: this.email,
+      password: this.password,
+      phone: this.countryCode + this.phone
+    }).subscribe({
+      next: () => {
+        this.router.navigate(['/verify-email'], { queryParams: { email: this.email } });
+      },
+      error: (err) => {
+        this.error = err?.error?.errorMessage ?? err?.error?.message ?? 'Registration failed.';
+        this.loading = false;
+        sessionStorage.removeItem('pending_reg_password');
+      }
     });
   }
 }

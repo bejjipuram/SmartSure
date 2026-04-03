@@ -20,14 +20,14 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Register a new customer — BCrypt hash, sets IsEmailVerified=false, sends verification link.
+    /// Register a new customer — BCrypt hash, sets IsEmailVerified=false, sends OTP.
     /// </summary>
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        var result = await _authService.RegisterAsync(dto);
+        var result = await _authService.RegisterWithOtpAsync(dto);
         if (!result.IsSuccess) return BadRequest(new { result.ErrorMessage });
-        return Ok(new { Message = "Registration successful. Please check your email to verify." });
+        return Ok(new { Message = "Registration successful. Please check your email for the OTP." });
     }
 
     /// <summary>
@@ -55,25 +55,25 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Verify email using GUID token from registration link (24 h expiry).
+    /// Verify email using OTP.
     /// </summary>
-    [HttpGet("verify-email")]
-    public async Task<IActionResult> VerifyEmail([FromQuery] string token)
+    [HttpPost("verify-email-otp")]
+    public async Task<IActionResult> VerifyEmailOtp([FromBody] VerifyOtpDto dto)
     {
-        var result = await _authService.VerifyEmailAsync(token);
+        var result = await _authService.VerifyRegistrationOtpAsync(dto);
         if (!result.IsSuccess) return BadRequest(new { result.ErrorMessage });
         return Ok(new { Message = "Email verified successfully." });
     }
 
     /// <summary>
-    /// Generate fresh verification token and resend email to user's inbox.
+    /// Generate fresh OTP and resend to user's inbox.
     /// </summary>
     [HttpPost("resend-verification")]
     public async Task<IActionResult> ResendVerification([FromQuery] string email)
     {
-        var result = await _authService.ResendVerificationEmailAsync(email);
+        var result = await _authService.ResendVerificationOtpAsync(email);
         if (!result.IsSuccess) return BadRequest(new { result.ErrorMessage });
-        return Ok(new { Message = "Verification email resent." });
+        return Ok(new { Message = "Verification OTP resent." });
     }
 
     /// <summary>
@@ -184,5 +184,17 @@ public class AuthController : ControllerBase
         });
         var encoded = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(payload));
         return Redirect($"http://localhost:4200/auth/google/callback?data={Uri.EscapeDataString(encoded)}");
+    }
+
+    /// <summary>
+    /// Refresh access and refresh tokens using a valid refresh token. 
+    /// NOTE: The frontend must store the refresh token in browser cache (localStorage/sessionStorage), not cookies or the database.
+    /// </summary>
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
+    {
+        var result = await _authService.RefreshTokenAsync(dto.RefreshToken);
+        if (!result.IsSuccess) return Unauthorized(new { result.ErrorMessage });
+        return Ok(result.Data);
     }
 }

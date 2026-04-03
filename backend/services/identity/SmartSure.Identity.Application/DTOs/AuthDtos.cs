@@ -3,15 +3,24 @@ using System.ComponentModel.DataAnnotations;
 namespace SmartSure.Identity.Application.DTOs;
 
 public record RegisterDto(
-    [Required] [EmailAddress] string Email, 
-    [Required] string FullName, 
-    [Required] [MinLength(6)] string Password);
+    [Required] [EmailAddress] string Email,
+    [Required] string FullName,
+    [Required] [MinLength(6)] string Password,
+    string? Phone = null);
 
 public record LoginDto(
     [Required] [EmailAddress] string Email, 
     [Required] string Password);
 
-public record LoginResponseDto(string AccessToken, string Email, string FullName, string[] Roles);
+public record LoginResponseDto(
+    string AccessToken, 
+    string RefreshToken, 
+    string Email, 
+    string FullName, 
+    string[] Roles);
+
+public record RefreshTokenDto(
+    [Required] string RefreshToken);
 
 public record VerifyOtpDto(
     [Required] [EmailAddress] string Email, 

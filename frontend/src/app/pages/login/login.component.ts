@@ -33,13 +33,13 @@ import { LocaleService, COUNTRY_LOCALES } from '../../services/locale.service';
           <i class="bi bi-envelope-exclamation me-2"></i>
           Your email is not verified.
           <div class="mt-2">
-            <button class="btn btn-sm btn-warning" [disabled]="resendLoading" (click)="resendVerification()">
-              <span *ngIf="resendLoading" class="spinner-border spinner-border-sm me-1"></span>
-              {{ resendLoading ? 'Sending...' : 'Resend verification email' }}
+              <button class="btn btn-sm btn-warning" [disabled]="resendLoading" (click)="resendVerification()">
+                <span *ngIf="resendLoading" class="spinner-border spinner-border-sm me-1"></span>
+                {{ resendLoading ? 'Sending...' : 'Resend OTP' }}
             </button>
           </div>
           <div *ngIf="resendSuccess" class="mt-2 small text-success fw-medium">
-            <i class="bi bi-check-circle me-1"></i>Verification email sent — check your inbox.
+              <i class="bi bi-check-circle me-1"></i>Verification OTP sent — check your inbox.
           </div>
         </div>
 

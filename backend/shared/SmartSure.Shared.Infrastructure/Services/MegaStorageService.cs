@@ -28,6 +28,8 @@ public class MegaStorageService : IMegaStorageService
 
     public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string folderName)
     {
+        _logger.LogDebug("UploadFileAsync called for {FileName} in {FolderName}", fileName, folderName);
+        _logger.LogTrace("[VERBOSE] UploadFileAsync parameters: fileName={FileName}, folderName={FolderName}", fileName, folderName);
         var client = new MegaApiClient();
         
         try
@@ -54,6 +56,7 @@ public class MegaStorageService : IMegaStorageService
             var uri = await client.GetDownloadLinkAsync(node);
             
             _logger.LogInformation("Successfully uploaded file. Generated link: {Link}", uri);
+            _logger.LogTrace("[VERBOSE] File uploaded and link generated: {Link}", uri);
             
             await client.LogoutAsync();
             return uri.ToString();

@@ -141,11 +141,12 @@ export class ProfileComponent implements OnInit {
     this.auth.updateProfile({ fullName: this.fullName, email: this.email, phone: this.phone }).subscribe({
       next: (u: User) => {
         // Here we just refresh the local storage with the new profile
-        this.auth.storeAuth({ 
-            accessToken: this.auth.getToken()!, 
-            email: u.email,
-            fullName: u.fullName,
-            roles: u.roles || []
+        this.auth.storeAuth({
+          accessToken: this.auth.getToken()!,
+          refreshToken: this.auth.getRefreshToken()!,
+          email: u.email,
+          fullName: u.fullName,
+          roles: u.roles || []
         });
         this.profileSuccess = 'Profile updated successfully.';
         this.profileLoading = false;

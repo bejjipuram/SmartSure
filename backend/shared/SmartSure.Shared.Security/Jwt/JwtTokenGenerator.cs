@@ -55,4 +55,30 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         
         return tokenHandler.WriteToken(token);
     }
+
+    public string GenerateRefreshToken(Guid userId, string email, int expiryMinutes)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, email),
+            new Claim("purpose", "refresh")
+        };
+
+        var rsaKey = new RsaSecurityKey(_rsa);
+        var credentials = new SigningCredentials(rsaKey, SecurityAlgorithms.RsaSha256);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddMinutes(expiryMinutes),
+            Issuer = _jwtSettings.Issuer,
+            Audience = _jwtSettings.Audience,
+            SigningCredentials = credentials
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
 }

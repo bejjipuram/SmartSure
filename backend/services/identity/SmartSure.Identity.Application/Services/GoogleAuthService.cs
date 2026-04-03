@@ -127,10 +127,11 @@ public class GoogleAuthService : IGoogleAuthService
             }
 
             var roles = user.UserRoles.Select(ur => ur.Role!.Name).ToList();
-            var jwt = _jwtTokenGenerator.GenerateToken(user.UserId, user.Email, roles);
+            var accessToken = _jwtTokenGenerator.GenerateToken(user.UserId, user.Email, roles);
+            var refreshToken = _jwtTokenGenerator.GenerateRefreshToken(user.UserId, user.Email, 2880); // 2 days
 
             return Result<LoginResponseDto>.Success(
-                new LoginResponseDto(jwt, user.Email, user.FullName, roles.ToArray()));
+                new LoginResponseDto(accessToken, refreshToken, user.Email, user.FullName, roles.ToArray()));
         }
         catch (Exception ex)
         {

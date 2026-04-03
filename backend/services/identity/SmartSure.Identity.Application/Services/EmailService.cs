@@ -20,6 +20,8 @@ public class EmailService : IEmailService
 
     public async Task SendEmailAsync(string to, string subject, string body)
     {
+        _logger.LogDebug("SendEmailAsync called for {To}", to);
+        _logger.LogTrace("[VERBOSE] Email payload: {Subject} | {Body}", subject, body);
         // Still log for fallback in case SMTP fails or isn't configured yet
         _logger.LogInformation("Attempting to send real email to {To}. Subject: {Subject}\nBody: {Body}", to, subject, body);
 

@@ -51,15 +51,16 @@ export class GoogleCallbackComponent implements OnInit {
 
     try {
       const json = atob(decodeURIComponent(encoded));
-      const data = JSON.parse(json) as { accessToken: string; email: string; fullName: string; roles: string[] };
+      const data = JSON.parse(json) as { accessToken: string; refreshToken: string; email: string; fullName: string; roles: string[] };
 
-      if (!data.accessToken || !data.email) {
+      if (!data.accessToken || !data.refreshToken || !data.email) {
         this.error = 'Incomplete authentication data received.';
         return;
       }
 
       this.auth.storeAuth({
         accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
         email: data.email,
         fullName: data.fullName ?? '',
         roles: data.roles ?? ['User']

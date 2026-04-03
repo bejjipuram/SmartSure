@@ -11,16 +11,16 @@ public static class SerilogExtensions
         return host.UseSerilog((context, loggerConfiguration) =>
         {
             loggerConfiguration
-                .MinimumLevel.Information()
+                .MinimumLevel.Verbose()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .MinimumLevel.Override("Ocelot", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("Service", serviceName)
-                .WriteTo.Console()
+                .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{Service}] [{UserEmail}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.File(
                     path: $"Logs/log-.txt",
                     rollingInterval: RollingInterval.Day,
-                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{Service}] {Message:lj}{NewLine}{Exception}"
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{Service}] [{UserEmail}] {Message:lj}{NewLine}{Exception}"
                 );
         });
     }

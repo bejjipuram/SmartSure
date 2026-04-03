@@ -5,7 +5,8 @@ import { AuthResponse, User } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly TOKEN_KEY = 'auth_token';
+  private readonly ACCESS_TOKEN_KEY = 'access_token';
+  private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly USER_KEY = 'auth_user';
 
   constructor(private http: HttpClient) {}
@@ -20,6 +21,7 @@ export class AuthService {
     fullName: string;
     email: string;
     password: string;
+    phone?: string;
   }): Observable<any> {
     return this.http.post<any>('/api/auth/register', payload);
   }
@@ -55,22 +57,28 @@ export class AuthService {
   }
 
   storeAuth(res: AuthResponse): void {
-    localStorage.setItem(this.TOKEN_KEY, res.accessToken);
+    localStorage.setItem(this.ACCESS_TOKEN_KEY, res.accessToken);
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, res.refreshToken);
     localStorage.setItem(this.USER_KEY, JSON.stringify({
-        userId: '',
-        fullName: res.fullName,
-        email: res.email,
-        roles: res.roles
+      userId: '',
+      fullName: res.fullName,
+      email: res.email,
+      roles: res.roles
     }));
   }
 
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
   getUser(): User | null {
