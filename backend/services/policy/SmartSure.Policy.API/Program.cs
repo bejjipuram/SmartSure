@@ -117,8 +117,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings["Issuer"] ?? "SmartSure",
-            ValidAudience = jwtSettings["Audience"] ?? "SmartSurePortal",
+            ValidIssuer = jwtSettings["Issuer"] ?? "SmartSureIdentity",
+            //MULTIPLE AUDIENCES HERE
+            ValidAudiences = new[]
+            {
+                "SmartSureAdmin-Api",
+                "SmartSurePolicy-Api",
+                "SmartSureClaim-Api"
+            },
             IssuerSigningKey = new RsaSecurityKey(rsa)
         };
     });

@@ -85,9 +85,13 @@ builder.Services.AddDbContext<IdentityDbContext>(options =>
 // JWT Config
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+if (jwtSettings == null)
+{
+    throw new Exception("JwtSettings configuration section is missing or invalid.");
+}
 
 // Load the RSA key from appsettings for cross-service JWT validation
-var privateKeyContent = jwtSettings?.PrivateKeyContent?.Replace("\\n", "\n");
+var privateKeyContent = jwtSettings.PrivateKeyContent?.Replace("\\n", "\n");
 var sharedRsa = System.Security.Cryptography.RSA.Create();
 if (!string.IsNullOrEmpty(privateKeyContent) && !privateKeyContent.Contains("dummy for local dev"))
 {
@@ -99,18 +103,21 @@ else
 }
 var sharedSecurityKey = new Microsoft.IdentityModel.Tokens.RsaSecurityKey(sharedRsa);
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
+            ValidIssuer = jwtSettings.Issuer,
+
             ValidateAudience = true,
-            ValidateLifetime = true,
+            ValidAudience = jwtSettings.Audience,
+
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = sharedSecurityKey,
-            ValidIssuer = jwtSettings?.Issuer ?? "SmartSure",
-            ValidAudience = jwtSettings?.Audience ?? "SmartSurePortal"
+            IssuerSigningKey = new RsaSecurityKey(sharedRsa),
+
+            ValidateLifetime = true
         };
     });
 
