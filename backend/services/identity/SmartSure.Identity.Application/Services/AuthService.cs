@@ -228,7 +228,7 @@ public class AuthService : IAuthService
         var roles = user.UserRoles.Select(ur => ur.Role!.Name).ToList();
         var accessToken = _jwtTokenGenerator.GenerateToken(user.UserId, user.Email, roles);
         // Generate stateless refresh token (minimal claims, 2 days expiry)
-        var refreshToken = _jwtTokenGenerator.GenerateRefreshToken(user.UserId, user.Email, 2880); // 2 days
+        var refreshToken = _jwtTokenGenerator.GenerateRefreshToken(user.UserId); // 2 days
 
         // Fire-and-forget — RabbitMQ unavailability must never block login
         _ = Task.Run(async () =>
@@ -406,7 +406,7 @@ public class AuthService : IAuthService
 
         var roles = user.UserRoles.Select(ur => ur.Role!.Name).ToList();
         var accessToken = _jwtTokenGenerator.GenerateToken(user.UserId, user.Email, roles);
-        var newRefreshToken = _jwtTokenGenerator.GenerateRefreshToken(user.UserId, user.Email, 2880); // 2 days
+        var newRefreshToken = _jwtTokenGenerator.GenerateRefreshToken(user.UserId); // 2 days
 
         return Result<LoginResponseDto>.Success(new LoginResponseDto(accessToken, newRefreshToken, user.Email, user.FullName, roles.ToArray()));
     }

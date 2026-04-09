@@ -18,60 +18,87 @@ public class JwtTokenGenerator : IJwtTokenGenerator
     }
 
     public string GenerateToken(Guid userId, string email, IList<string> roles, string? purpose = null, int? expiryMinutesOverride = null)
-{
-
-    var claims = new List<Claim>
     {
-        new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, email),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
 
-    // Add a single 'role' claim with all roles (comma-separated) for compatibility
-    if (roles != null && roles.Count > 0)
-    {
-        claims.Add(new Claim("role", string.Join(",", roles)));
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
-    }
 
-    if (!string.IsNullOrEmpty(purpose))
-    {
-        claims.Add(new Claim("purpose", purpose));
-    }
-
-    // Add audience claim if present
-    if (!string.IsNullOrEmpty(_jwtSettings.Audience))
-    {
-        claims.Add(new Claim(JwtRegisteredClaimNames.Aud, _jwtSettings.Audience));
-    }
-
-    var rsaKey = new RsaSecurityKey(_rsa);
-    var credentials = new SigningCredentials(rsaKey, SecurityAlgorithms.RsaSha256);
-
-    int expiry = expiryMinutesOverride ?? _jwtSettings.ExpiryMinutes;
-
-    var token = new JwtSecurityToken(
-        issuer: _jwtSettings.Issuer,
-        claims: claims,
-        expires: DateTime.UtcNow.AddMinutes(expiry),
-        signingCredentials: credentials
-    );
-
-    var tokenHandler = new JwtSecurityTokenHandler();
-    return tokenHandler.WriteToken(token);
-}
-
-    public string GenerateRefreshToken(Guid userId, string email, int expiryMinutes)
-    {
-        // Generate a secure random string (Base64Url, 32 bytes = 256 bits)
-        var bytes = new byte[32];
-        using (var rng = RandomNumberGenerator.Create())
+        if (!string.IsNullOrEmpty(purpose))
         {
-            rng.GetBytes(bytes);
+            claims.Add(new Claim("purpose", purpose));
         }
-        return Base64UrlEncoder.Encode(bytes);
+
+        var rsaKey = new RsaSecurityKey(_rsa);
+        var credentials = new SigningCredentials(rsaKey, SecurityAlgorithms.RsaSha256);
+
+        int expiry = expiryMinutesOverride ?? _jwtSettings.ExpiryMinutes;
+
+
+        // If multiple audiences, use JwtSecurityToken directly to set 'aud' as array in payload
+        if (_jwtSettings.Audiences != null && _jwtSettings.Audiences.Length > 1)
+        {
+            var now = DateTime.UtcNow;
+            var jwt = new JwtSecurityToken(
+                issuer: _jwtSettings.Issuer,
+                audience: null, // don't set single audience
+                claims: claims,
+                notBefore: now,
+                expires: now.AddMinutes(expiry),
+                signingCredentials: credentials
+            );
+            // Overwrite 'aud' claim in payload as array
+            var payload = jwt.Payload;
+            payload[JwtRegisteredClaimNames.Aud] = _jwtSettings.Audiences;
+            var handler = new JwtSecurityTokenHandler();
+            return handler.WriteToken(jwt);
+        }
+        else
+        {
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddMinutes(expiry),
+                Issuer = _jwtSettings.Issuer,
+                Audience = _jwtSettings.Audiences != null && _jwtSettings.Audiences.Length == 1 ? _jwtSettings.Audiences[0] : _jwtSettings.Audience,
+                SigningCredentials = credentials
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+    }
+
+    public string GenerateRefreshToken(Guid userId)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new Claim("purpose", "refresh")
+        };
+
+        // ✅ ADD THIS
+        var rsaKey = new RsaSecurityKey(_rsa);
+        var credentials = new SigningCredentials(rsaKey, SecurityAlgorithms.RsaSha256);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddDays(7),
+            Issuer = _jwtSettings.Issuer,
+            SigningCredentials = credentials
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+
+        return tokenHandler.WriteToken(token);
     }
 }

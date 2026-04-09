@@ -128,7 +128,7 @@ public class GoogleAuthService : IGoogleAuthService
 
             var roles = user.UserRoles.Select(ur => ur.Role!.Name).ToList();
             var accessToken = _jwtTokenGenerator.GenerateToken(user.UserId, user.Email, roles);
-            var refreshToken = _jwtTokenGenerator.GenerateRefreshToken(user.UserId, user.Email, 2880); // 2 days
+            var refreshToken = _jwtTokenGenerator.GenerateRefreshToken(user.UserId); // 2 days
 
             return Result<LoginResponseDto>.Success(
                 new LoginResponseDto(accessToken, refreshToken, user.Email, user.FullName, roles.ToArray()));
