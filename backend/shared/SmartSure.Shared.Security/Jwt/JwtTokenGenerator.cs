@@ -19,12 +19,19 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
     public string GenerateToken(Guid userId, string email, IList<string> roles, string? purpose = null, int? expiryMinutesOverride = null)
     {
+
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        // Add 'role' claim as a single string (first role if multiple)
+        if (roles != null && roles.Count > 0)
+        {
+            claims.Add(new Claim("role", roles[0]));
+        }
 
         foreach (var role in roles)
         {
