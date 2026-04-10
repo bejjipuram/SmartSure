@@ -4,13 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ClaimService } from '../../services/claim.service';
 import { PolicyService } from '../../services/policy.service';
 import { LocaleService } from '../../services/locale.service';
-import { ConvertCurrencyPipe } from '../../pipes/convert-currency.pipe';
 import { Claim, Policy } from '../../models/models';
 
 @Component({
   selector: 'app-claims',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConvertCurrencyPipe],
+  imports: [CommonModule, FormsModule],
   template: `
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-4">
@@ -55,7 +54,7 @@ import { Claim, Policy } from '../../models/models';
               <td><code class="small">{{ getPolicyNumber(c.policyId) }}</code></td>
               <td>Insurance</td>
               <td>{{ c.incidentDate | date:'MMM d, y':locale.timezone:locale.locale }}</td>
-              <td class="text-end fw-medium">{{ c.claimAmount | convertCurrency }}</td>
+              <td class="text-end fw-medium">₹{{ c.claimAmount | number:'1.2-2' }}</td>
               <td><span [class]="'badge rounded-pill ' + badgeClass(c.status)">{{ c.status }}</span></td>
               <td>
                 <button class="btn btn-sm btn-light" (click)="$event.stopPropagation(); openDetail(c)">
@@ -110,7 +109,7 @@ import { Claim, Policy } from '../../models/models';
               </div>
               <div class="col-12">
                 <small class="text-muted d-block">Claim Amount</small>
-                <span class="fw-bold text-primary fs-5">{{ selectedClaim.claimAmount | convertCurrency }}</span>
+                <span class="fw-bold text-primary fs-5">₹{{ selectedClaim.claimAmount | number:'1.2-2' }}</span>
               </div>
               <div class="col-12">
                 <small class="text-muted d-block mb-1">Description</small>

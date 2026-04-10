@@ -3,13 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PolicyService } from '../../../services/policy.service';
 import { LocaleService } from '../../../services/locale.service';
-import { ConvertCurrencyPipe } from '../../../pipes/convert-currency.pipe';
 import { AdminPolicy, PagedResult } from '../../../models/models';
 
 @Component({
   selector: 'app-manage-policies',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConvertCurrencyPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './manage-policies.component.html',
   styleUrls: ['./manage-policies.component.css']
 })

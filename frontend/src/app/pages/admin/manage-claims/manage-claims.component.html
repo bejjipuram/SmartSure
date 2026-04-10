@@ -37,7 +37,7 @@
                 </button>
               </td>
               <td class="small">{{ c.customerName }}</td>
-              <td class="fw-bold">{{ c.claimAmount | convertCurrency }}</td>
+              <td class="fw-bold">₹{{ c.claimAmount | number:'1.2-2' }}</td>
               <td class="text-muted small">{{ c.incidentDate | date:'mediumDate':locale.timezone:locale.locale }}</td>
               <td>
                 <span class="badge rounded-pill" [ngClass]="{
@@ -105,7 +105,7 @@
           </div>
           <div class="col-6 col-md-3">
             <small class="text-muted d-block">Amount</small>
-            <span class="fw-bold text-primary">{{ selectedClaim.claimAmount | convertCurrency }}</span>
+            <span class="fw-bold text-primary">₹{{ selectedClaim.claimAmount | number:'1.2-2' }}</span>
           </div>
           <div class="col-6 col-md-3">
             <small class="text-muted d-block">Status</small>

@@ -3,7 +3,7 @@ import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/rou
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
-import { LocaleService, COUNTRY_LOCALES } from '../../services/locale.service';
+import { LocaleService } from '../../services/locale.service';
 
 interface NavItem {
   label: string;
@@ -60,26 +60,10 @@ interface NavItem {
           <span class="topbar-title">{{ pageTitle }}</span>
         </div>
         <div class="d-flex align-items-center gap-3">
-          <!-- Country / locale selector -->
-          <div class="dropdown">
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1 py-1 px-2"
-                    type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                    style="font-size:0.8rem;">
-              <span style="font-size:1.1rem;">{{ currentFlag }}</span>
-              <span class="d-none d-sm-inline">{{ currentCountry }}</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" style="min-width:200px;max-height:300px;overflow-y:auto;">
-              <li *ngFor="let c of countries">
-                <button class="dropdown-item d-flex align-items-center gap-2 py-1"
-                        [class.active]="c.country === currentCountry"
-                        (click)="changeCountry(c.country)">
-                  <span style="font-size:1.1rem;">{{ c.flag }}</span>
-                  <span style="font-size:0.85rem;">{{ c.country }}</span>
-                  <span class="ms-auto text-muted" style="font-size:0.75rem;">{{ c.currencySymbol }}</span>
-                </button>
-              </li>
-            </ul>
-          </div>
+          <!-- User Role Display -->
+          <span class="badge bg-secondary text-white text-uppercase" style="font-size:0.85rem; letter-spacing:0.5px;">
+            {{ userRole }}
+          </span>
           <div class="user-avatar">{{ userInitials }}</div>
           <span class="d-none d-sm-block text-sm fw-medium text-secondary">{{ userName }}</span>
         </div>
@@ -98,9 +82,7 @@ export class ShellComponent implements OnInit {
   userName = '';
   pageTitle = 'Dashboard';
   isAdmin = false;
-  countries = COUNTRY_LOCALES;
-  currentFlag = '🇮🇳';
-  currentCountry = 'India';
+  userRole = '';
 
   navItems: NavItem[] = [];
 
@@ -143,28 +125,17 @@ export class ShellComponent implements OnInit {
   ngOnInit(): void {
     this.userInitials = this.auth.getUserInitials();
     this.userName = this.auth.getUserFullName();
-    this.refreshLocale();
-    
     const user = this.auth.getUser();
+    this.userRole = user?.roles?.[0] || 'User';
     this.isAdmin = user?.roles?.includes('Admin') ?? false;
     this.navItems = this.isAdmin ? this.adminNav : this.customerNav;
-
     this.router.events.subscribe(() => {
       this.updatePageTitle();
     });
     this.updatePageTitle();
   }
 
-  refreshLocale(): void {
-    const loc = this.locale.getLocale();
-    this.currentFlag = loc.flag;
-    this.currentCountry = loc.country;
-  }
 
-  changeCountry(country: string): void {
-    this.locale.setCountry(country);
-    this.refreshLocale();
-  }
 
   private updatePageTitle(): void {
     const path = this.router.url.split('?')[0]; // Handle query params

@@ -3,13 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PolicyService } from '../../services/policy.service';
 import { LocaleService } from '../../services/locale.service';
-import { ConvertCurrencyPipe } from '../../pipes/convert-currency.pipe';
 import { Policy } from '../../models/models';
 
 @Component({
   selector: 'app-policies',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConvertCurrencyPipe],
+  imports: [CommonModule, FormsModule],
   template: `
     <!-- Filters -->
     <div class="d-flex flex-wrap gap-2 mb-4">
@@ -71,7 +70,7 @@ import { Policy } from '../../models/models';
             <div class="col-12">
               <div class="p-2 rounded-2" style="background:#f8fafc;">
                 <small class="text-muted d-block">Annual Premium</small>
-                <span class="fw-bold text-primary">{{ p.premiumAmount | convertCurrency:'1.2-2' }}</span>
+                <span class="fw-bold text-primary">₹{{ p.premiumAmount | number:'1.2-2' }}</span>
               </div>
             </div>
           </div>
@@ -118,13 +117,13 @@ import { Policy } from '../../models/models';
                 <div class="col-6 col-md-3">
                   <div class="p-3 bg-light rounded-3 text-center">
                     <small class="text-muted d-block">Annual Premium</small>
-                    <span class="fw-bold text-primary">{{ selectedPolicy.premiumAmount | convertCurrency }}</span>
+                    <span class="fw-bold text-primary">₹{{ selectedPolicy.premiumAmount | number:'1.2-2' }}</span>
                   </div>
                 </div>
                 <div class="col-6 col-md-3">
                   <div class="p-3 bg-light rounded-3 text-center">
                     <small class="text-muted d-block">{{ selectedPolicy.subType?.insuranceTypeId === 1 ? 'IDV' : 'Sum Insured' }}</small>
-                    <span class="fw-bold text-success">{{ selectedPolicy.insuredDeclaredValue | convertCurrency }}</span>
+                    <span class="fw-bold text-success">₹{{ selectedPolicy.insuredDeclaredValue | number:'1.2-2' }}</span>
                   </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -157,7 +156,7 @@ import { Policy } from '../../models/models';
                 <h6 class="fw-semibold mb-2"><i class="bi bi-house me-2 text-primary"></i>Property Details</h6>
                 <div class="row g-2">
                   <div class="col-12"><small class="text-muted d-block">Address</small><span class="fw-medium">{{ selectedPolicy.homeDetails.propertyAddress }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">Property Value</small><span class="fw-medium">{{ selectedPolicy.homeDetails.propertyValue | convertCurrency }}</span></div>
+                  <div class="col-6"><small class="text-muted d-block">Property Value</small><span class="fw-medium">₹{{ selectedPolicy.homeDetails.propertyValue | number:'1.2-2' }}</span></div>
                   <div class="col-6"><small class="text-muted d-block">Year Built</small><span class="fw-medium">{{ selectedPolicy.homeDetails.yearBuilt }}</span></div>
                   <div class="col-6"><small class="text-muted d-block">Construction Type</small><span class="fw-medium">{{ selectedPolicy.homeDetails.constructionType }}</span></div>
                   <div class="col-6"><small class="text-muted d-block">Security System</small><span class="fw-medium">{{ selectedPolicy.homeDetails.hasSecuritySystem ? 'Yes' : 'No' }}</span></div>

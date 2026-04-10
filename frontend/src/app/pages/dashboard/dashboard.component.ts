@@ -1,18 +1,17 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartOptions, ChartType } from 'chart.js';
 import { DashboardService } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
 import { LocaleService } from '../../services/locale.service';
-import { ConvertCurrencyPipe } from '../../pipes/convert-currency.pipe';
 import { DashboardData, Policy, Claim, AdminDashboardData, AuditLog } from '../../models/models';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, BaseChartDirective, ConvertCurrencyPipe],
+  imports: [CommonModule, RouterLink, BaseChartDirective],
   template: `
     <div *ngIf="loading" class="loading-spinner">
       <div class="spinner-border text-primary" style="width:2.5rem;height:2.5rem;"></div>
@@ -35,7 +34,7 @@ import { DashboardData, Policy, Claim, AdminDashboardData, AuditLog } from '../.
           <div class="col-sm-4">
             <div class="stat-card">
               <div class="stat-icon bg-green-lite"><i class="bi bi-cash-stack text-success"></i></div>
-              <div><div class="stat-label">Total Revenue</div><div class="stat-value">{{ adminData.totalRevenue | convertCurrency }}</div></div>
+              <div><div class="stat-label">Total Revenue</div><div class="stat-value">₹{{ adminData.totalRevenue | number:'1.2-2' }}</div></div>
             </div>
           </div>
           <div class="col-sm-4">
@@ -134,7 +133,7 @@ import { DashboardData, Policy, Claim, AdminDashboardData, AuditLog } from '../.
               </div>
               <div>
                 <div class="stat-label">Total Premium</div>
-                <div class="stat-value">{{ data.totalPremium | convertCurrency:'1.2-2' }}</div>
+                <div class="stat-value">₹{{ data.totalPremium | number:'1.2-2' }}</div>
               </div>
             </div>
           </div>
@@ -195,7 +194,7 @@ import { DashboardData, Policy, Claim, AdminDashboardData, AuditLog } from '../.
                   <td><code class="small">{{ c.claimNumber || 'CLM-' + c.id }}</code></td>
                   <td>{{ c.description }}</td>
                   <td><span [class]="'badge rounded-pill ' + claimBadgeClass(c.status)">{{ c.status }}</span></td>
-                  <td class="text-end fw-medium">{{ c.claimAmount | convertCurrency }}</td>
+                  <td class="text-end fw-medium">₹{{ c.claimAmount | number:'1.2-2' }}</td>
                 </tr>
               </tbody>
             </table>

@@ -4,13 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PolicyService } from '../../../services/policy.service';
 import { LocaleService } from '../../../services/locale.service';
-import { ConvertCurrencyPipe } from '../../../pipes/convert-currency.pipe';
 import { InsuranceType, InsuranceSubType } from '../../../models/models';
 
 @Component({
   selector: 'app-buy-policy',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConvertCurrencyPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './buy-policy.component.html',
   styleUrls: ['./buy-policy.component.css']
 })

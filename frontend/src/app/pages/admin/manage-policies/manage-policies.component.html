@@ -48,7 +48,7 @@
                   'bg-warning-lite text-warning': p.status === 'Pending' || p.status === 'PENDING'
                 }">{{ p.status }}</span>
               </td>
-              <td class="fw-semibold text-primary">{{ p.premiumAmount | convertCurrency }}</td>
+              <td class="fw-semibold text-primary">₹{{ p.premiumAmount | number:'1.2-2' }}</td>
               <td class="text-end pe-4">
                 <button class="btn btn-sm btn-outline-danger rounded-pill"
                         (click)="cancelPolicy(p.policyId)"

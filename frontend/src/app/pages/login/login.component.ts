@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
-import { LocaleService, COUNTRY_LOCALES } from '../../services/locale.service';
+// import { LocaleService, COUNTRY_LOCALES } from '../../services/locale.service';
 
 @Component({
   selector: 'app-login',
@@ -61,19 +61,7 @@ import { LocaleService, COUNTRY_LOCALES } from '../../services/locale.service';
             </div>
           </div>
 
-          <!-- Country / Region picker -->
-          <div class="mb-3">
-            <label class="form-label fw-medium small">Country / Region</label>
-            <div class="input-group">
-              <span class="input-group-text fs-5 px-3">{{ selectedFlag }}</span>
-              <select class="form-select" [(ngModel)]="selectedCountry" name="country" (ngModelChange)="onCountryChange($event)">
-                <option *ngFor="let c of countries" [value]="c.country">{{ c.flag }} {{ c.country }}</option>
-              </select>
-            </div>
-            <div class="mt-1 small text-muted">
-              Currency: <strong>{{ selectedCurrency }}</strong> &nbsp;·&nbsp; Timezone: <strong>{{ selectedTimezone }}</strong>
-            </div>
-          </div>
+
 
           <div class="d-flex justify-content-end mb-3">
             <a routerLink="/forgot-password" class="small text-primary fw-medium text-decoration-none">
@@ -119,33 +107,15 @@ export class LoginComponent implements OnInit {
   resendLoading = false;
   resendSuccess = false;
 
-  countries = COUNTRY_LOCALES;
-  selectedCountry = '';
-  selectedFlag = '';
-  selectedCurrency = '';
-  selectedTimezone = '';
+  // Country/currency selection removed
 
-  constructor(private auth: AuthService, private router: Router, private locale: LocaleService) {}
+  constructor(private auth: AuthService, private router: Router) {}
 
-  ngOnInit(): void {
-    const current = this.locale.getLocale();
-    this.selectedCountry = current.country;
-    this.updateDisplay(current.country);
-  }
+  ngOnInit(): void {}
 
-  onCountryChange(country: string): void {
-    this.locale.setCountry(country);
-    this.updateDisplay(country);
-  }
 
-  private updateDisplay(country: string): void {
-    const found = COUNTRY_LOCALES.find(c => c.country === country);
-    if (found) {
-      this.selectedFlag = found.flag;
-      this.selectedCurrency = `${found.currencySymbol} (${found.currencyCode})`;
-      this.selectedTimezone = found.timezone;
-    }
-  }
+
+
 
   onSubmit(): void {
     this.error = '';

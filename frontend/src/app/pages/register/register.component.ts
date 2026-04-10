@@ -35,17 +35,12 @@ import { COUNTRY_CODES } from '../../models/country-codes';
           <div class="mb-3">
             <label class="form-label fw-medium small">Email address</label>
             <input type="email" class="form-control" [(ngModel)]="email" name="email" required placeholder="you@example.com" autocomplete="email">
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-medium small">Country Code</label>
-            <select class="form-select" [(ngModel)]="countryCode" name="countryCode" required>
-              <option *ngFor="let c of countryCodes" [value]="c.code">{{ c.name }} ({{ c.code }})</option>
-            </select>
+            <div *ngIf="email && !validateEmail(email)" class="text-danger small mt-1">Enter a valid email address.</div>
           </div>
           <div class="mb-3">
             <label class="form-label fw-medium small">Phone Number</label>
-            <input type="tel" class="form-control" [(ngModel)]="phone" name="phone" required pattern="\d{7,15}" placeholder="1234567890">
-            <div *ngIf="phone && !validatePhone(phone)" class="text-danger small mt-1">Enter a valid phone number (digits only, 7-15 digits).</div>
+            <input type="tel" class="form-control" [(ngModel)]="phone" name="phone" required pattern="[6-9]{1}[0-9]{9}" placeholder="9876543210">
+            <div *ngIf="phone && !validatePhone(phone)" class="text-danger small mt-1">Enter a valid Indian mobile number (10 digits, starts with 6-9).</div>
           </div>
           <div class="mb-3">
             <label class="form-label fw-medium small">Password</label>
@@ -55,6 +50,9 @@ import { COUNTRY_CODES } from '../../models/country-codes';
               <button type="button" class="btn btn-outline-secondary" (click)="showPassword = !showPassword">
                 <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
               </button>
+            </div>
+            <div *ngIf="password && !isStrongPassword(password)" class="text-danger small mt-1">
+              Password must be at least 8 characters and include uppercase, lowercase, number, and special character.
             </div>
           </div>
           <div class="mb-3">
@@ -95,7 +93,7 @@ export class RegisterComponent {
   email = '';
   password = '';
   confirmPassword = '';
-  countryCode = '+1';
+  // countryCode = '+1'; // Removed country code initialization
   phone = '';
   showPassword = false;
   loading = false;
@@ -105,18 +103,36 @@ export class RegisterComponent {
   constructor(private auth: AuthService, private router: Router) {}
 
   validatePhone(phone: string): boolean {
-    // Basic phone validation: digits only, length 7-15
-    return /^\d{7,15}$/.test(phone);
+    // Indian mobile: 10 digits, starts with 6-9
+    return /^[6-9]\d{9}$/.test(phone);
+  }
+
+  validateEmail(email: string): boolean {
+    // Simple email regex
+    return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+  }
+
+  isStrongPassword(password: string): boolean {
+    // At least 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(password);
   }
 
   onSubmit(): void {
     this.error = '';
+    if (!this.validateEmail(this.email)) {
+      this.error = 'Please enter a valid email address.';
+      return;
+    }
+    if (!this.isStrongPassword(this.password)) {
+      this.error = 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.';
+      return;
+    }
     if (this.password !== this.confirmPassword) {
       this.error = 'Passwords do not match.';
       return;
     }
     if (!this.validatePhone(this.phone)) {
-      this.error = 'Please enter a valid phone number (digits only, 7-15 digits).';
+      this.error = 'Please enter a valid Indian mobile number (10 digits, starts with 6-9).';
       return;
     }
     this.loading = true;
@@ -126,7 +142,7 @@ export class RegisterComponent {
       fullName: this.fullName,
       email: this.email,
       password: this.password,
-      phone: this.countryCode + this.phone
+      phone: this.phone
     }).subscribe({
       next: () => {
         this.router.navigate(['/verify-email'], { queryParams: { email: this.email } });

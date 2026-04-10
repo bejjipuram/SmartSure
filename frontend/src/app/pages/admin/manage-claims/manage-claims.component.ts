@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ClaimService } from '../../../services/claim.service';
 import { LocaleService } from '../../../services/locale.service';
-import { ConvertCurrencyPipe } from '../../../pipes/convert-currency.pipe';
 import { AdminClaim, PagedResult } from '../../../models/models';
 
 interface ClaimDocument {
@@ -19,7 +18,7 @@ interface ClaimDocument {
 @Component({
   selector: 'app-manage-claims',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConvertCurrencyPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './manage-claims.component.html',
   styleUrls: ['./manage-claims.component.css']
 })
