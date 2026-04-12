@@ -177,7 +177,9 @@ public class PolicyManagementService : IPolicyManagementService
         var holder = await _policyRepository.GetPolicyHolderAsync(userId);
         var customerName = holder?.FullName ?? "Unknown";
 
-        // Publish PolicyCreatedEvent
+        await _unitOfWork.SaveChangesAsync();
+
+        // Publish only after the policy is committed so consumers do not mirror non-existent records.
         await _publishEndpoint.Publish(new PolicyCreatedEvent(
             policy.Id,
             policy.PolicyNumber,
@@ -191,8 +193,6 @@ public class PolicyManagementService : IPolicyManagementService
             policy.StartDate,
             policy.EndDate
         ));
-
-        await _unitOfWork.SaveChangesAsync();
 
         return Result<Guid>.Success(policy.Id);
     }
@@ -208,15 +208,42 @@ public class PolicyManagementService : IPolicyManagementService
 
         await _policyRepository.UpdatePolicyAsync(policy);
 
+        await _unitOfWork.SaveChangesAsync();
+
         await _publishEndpoint.Publish(new PolicyCancelledEvent(
             policy.Id,
             policy.UserId,
             "Admin Action",
             DateTime.UtcNow
         ));
-
-        await _unitOfWork.SaveChangesAsync();
         return Result.Success();
+    }
+
+    public async Task<Result<int>> ReplayPolicyCreatedEventsAsync(string? status = "Active")
+    {
+        var policies = await _policyRepository.GetPoliciesForReplayAsync(status);
+
+        foreach (var policy in policies)
+        {
+            var holder = await _policyRepository.GetPolicyHolderAsync(policy.UserId);
+            var customerName = holder?.FullName ?? "Unknown";
+
+            await _publishEndpoint.Publish(new PolicyCreatedEvent(
+                policy.Id,
+                policy.PolicyNumber,
+                policy.UserId,
+                customerName,
+                policy.InsuranceSubType?.Name ?? "Unknown",
+                policy.PremiumAmount,
+                policy.InsuredDeclaredValue,
+                policy.Status,
+                policy.CreatedAt,
+                policy.StartDate,
+                policy.EndDate
+            ));
+        }
+
+        return Result<int>.Success(policies.Count);
     }
 
     public async Task<Result<decimal>> CalculatePremiumAsync(Guid policyId, Guid userId)

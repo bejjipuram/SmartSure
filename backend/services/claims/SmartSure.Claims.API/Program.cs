@@ -70,7 +70,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // DbContext configuration
 builder.Services.AddDbContext<ClaimsDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ClaimsDb") ?? "Server=localhost;Database=SmartSure_ClaimsDB;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True",
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ClaimsDb") ?? "Server=localhost,1433;Database=SmartSure_ClaimsDB;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True",
         sql => sql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 // Dependency Injection - Infrastructure
@@ -115,8 +115,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings["Issuer"] ?? "SmartSureIdentity",
-            ValidAudiences = jwtSettings.GetSection("Audience").Get<string[]>(),
+            ValidIssuer = jwtSettings["Issuer"] ?? "SmartSureIdentity-Api",
+            ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new RsaSecurityKey(rsa)
         };
     });

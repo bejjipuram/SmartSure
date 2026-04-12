@@ -42,7 +42,10 @@ export class BuyPolicyComponent implements OnInit {
   }
 
   isVehicle(): boolean { return this.selectedType?.name?.toLowerCase().includes('vehicle') ?? false; }
-  isHome(): boolean { return this.selectedType?.name?.toLowerCase().includes('home') ?? false; }
+  isHome(): boolean {
+  const name = this.selectedType?.name?.toLowerCase() ?? '';
+  return name.includes('home') || name.includes('property');
+}
 
   selectType(type: InsuranceType): void {
     this.selectedType = type;

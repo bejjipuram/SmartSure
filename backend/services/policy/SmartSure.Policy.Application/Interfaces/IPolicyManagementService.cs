@@ -9,6 +9,7 @@ public interface IPolicyManagementService
     Task<Result<PolicyDetailDto>> GetPolicyDetailAsync(Guid policyId, Guid userId);
     Task<Result<Guid>> BuyPolicyAsync(Guid userId, BuyPolicyDto dto);
     Task<Result> CancelPolicyAsync(Guid policyId); // Admin only
+    Task<Result<int>> ReplayPolicyCreatedEventsAsync(string? status = "Active");
     
     // Premium Calculation
     Task<Result<decimal>> CalculatePremiumAsync(Guid policyId, Guid userId);

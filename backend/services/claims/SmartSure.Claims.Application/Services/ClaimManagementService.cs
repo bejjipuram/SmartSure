@@ -9,6 +9,7 @@ using SmartSure.Claims.Domain.Entities;
 using SmartSure.Shared.Common.Models;
 using SmartSure.Shared.Contracts.Events;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace SmartSure.Claims.Application.Services;
 
@@ -18,17 +19,20 @@ public class ClaimManagementService : IClaimManagementService
     private readonly IClaimHistoryRepository _historyRepository;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ClaimManagementService> _logger;
 
     public ClaimManagementService(
         IClaimRepository claimRepository, 
         IClaimHistoryRepository historyRepository, 
         IPublishEndpoint publishEndpoint, 
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ILogger<ClaimManagementService> logger)
     {
         _claimRepository = claimRepository;
         _historyRepository = historyRepository;
         _publishEndpoint = publishEndpoint;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task<ClaimDto?> GetClaimByIdAsync(int claimId)
@@ -73,7 +77,16 @@ public class ClaimManagementService : IClaimManagementService
     public async Task<Result<ClaimDto>> InitiateClaimAsync(Guid userId, CreateClaimDto dto)
     {
         // Policy validation
-        var validPolicy = await _claimRepository.GetValidPolicyAsync(dto.PolicyId);
+        ValidPolicy? validPolicy;
+        try
+        {
+            validPolicy = await _claimRepository.GetValidPolicyAsync(dto.PolicyId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Claim initiation failed while loading ValidPolicy for {PolicyId}", dto.PolicyId);
+            return Result<ClaimDto>.Failure("Claim validation failed because policy mirror data is unavailable. Please sync migrations and try again.");
+        }
         
         if (validPolicy == null)
             return Result<ClaimDto>.Failure("Invalid Policy ID. The policy does not exist.");

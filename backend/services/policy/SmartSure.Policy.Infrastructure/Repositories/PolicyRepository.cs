@@ -57,6 +57,20 @@ public class PolicyRepository : IPolicyRepository
                              .FirstOrDefaultAsync(p => p.Id == policyId && p.UserId == userId);
     }
 
+    public async Task<IReadOnlyList<Domain.Entities.Policy>> GetPoliciesForReplayAsync(string? status)
+    {
+        var query = _context.Policies
+                            .Include(p => p.InsuranceSubType)
+                            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(p => p.Status == status);
+        }
+
+        return await query.OrderBy(p => p.CreatedAt).ToListAsync();
+    }
+
     public async Task AddPolicyAsync(Domain.Entities.Policy policy)
     {
         await _context.Policies.AddAsync(policy);

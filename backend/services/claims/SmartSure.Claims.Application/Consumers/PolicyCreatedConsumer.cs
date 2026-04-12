@@ -26,29 +26,61 @@ public class PolicyCreatedConsumer : IConsumer<PolicyCreatedEvent>
     public async Task Consume(ConsumeContext<PolicyCreatedEvent> context)
     {
         var message = context.Message;
-        _logger.LogInformation("Claim Service: Received PolicyCreatedEvent for {PolicyId}", message.PolicyId);
+        _logger.LogInformation(
+            "Claim Service: Received PolicyCreatedEvent for {PolicyId} / {PolicyNumber}",
+            message.PolicyId,
+            message.PolicyNumber);
 
-        var existing = await _repository.GetValidPolicyAsync(message.PolicyId);
-        if (existing == null)
+        try
         {
-            var policy = new ValidPolicy
+            var existing = await _repository.GetValidPolicyAsync(message.PolicyId);
+            if (existing == null)
             {
-                PolicyId = message.PolicyId,
-                UserId = message.UserId,
-                PolicyNumber = message.PolicyNumber,
-                CustomerName = message.CustomerName,
-                Status = message.Status,
-                InsuredDeclaredValue = message.InsuredDeclaredValue,
-                StartDate = message.StartDate,
-                EndDate = message.EndDate
-            };
-            await _repository.AddValidPolicyAsync(policy);
-            await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Claim Service: Created ValidPolicy mirror for {PolicyId}", message.PolicyId);
+                var policy = new ValidPolicy
+                {
+                    PolicyId = message.PolicyId,
+                    UserId = message.UserId,
+                    PolicyNumber = message.PolicyNumber,
+                    CustomerName = message.CustomerName,
+                    Status = message.Status,
+                    InsuredDeclaredValue = message.InsuredDeclaredValue,
+                    StartDate = message.StartDate,
+                    EndDate = message.EndDate
+                };
+                await _repository.AddValidPolicyAsync(policy);
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation(
+                    "Claim Service: Created ValidPolicy mirror for {PolicyId} / {PolicyNumber}",
+                    message.PolicyId,
+                    message.PolicyNumber);
+            }
+            else
+            {
+                existing.UserId = message.UserId;
+                existing.PolicyNumber = message.PolicyNumber;
+                existing.CustomerName = message.CustomerName;
+                existing.Status = message.Status;
+                existing.InsuredDeclaredValue = message.InsuredDeclaredValue;
+                existing.StartDate = message.StartDate;
+                existing.EndDate = message.EndDate;
+                existing.UpdatedAt = DateTime.UtcNow;
+
+                await _repository.UpdateValidPolicyAsync(existing);
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation(
+                    "Claim Service: Updated ValidPolicy mirror for {PolicyId} / {PolicyNumber}",
+                    message.PolicyId,
+                    message.PolicyNumber);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogInformation("Claim Service: ValidPolicy {PolicyId} already exists.", message.PolicyId);
+            _logger.LogError(
+                ex,
+                "Claim Service: Failed to mirror PolicyCreatedEvent for {PolicyId} / {PolicyNumber}",
+                message.PolicyId,
+                message.PolicyNumber);
+            throw;
         }
     }
 }

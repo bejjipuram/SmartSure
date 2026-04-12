@@ -116,7 +116,7 @@ public class AdminPolicyService : IAdminPolicyService
         Id = policy.Id,
         PolicyId = policy.PolicyId,
         PolicyNumber = policy.PolicyNumber,
-        CustomerName = policy.CustomerName,
+        CustomerName = policy.CustomerName ?? "Not Provided",
         InsuranceType = policy.InsuranceType,
         PremiumAmount = policy.PremiumAmount,
         Status = policy.Status

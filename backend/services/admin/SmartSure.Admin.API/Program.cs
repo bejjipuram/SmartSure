@@ -92,7 +92,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtSettings["Issuer"],
-            ValidAudiences = jwtSettings.GetSection("Audience").Get<string[]>(),
+            ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new RsaSecurityKey(rsa)
         };
     });

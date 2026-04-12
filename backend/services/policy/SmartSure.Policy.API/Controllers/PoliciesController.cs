@@ -58,6 +58,20 @@ public class PoliciesController : ControllerBase
         return Ok(new { Message = "Policy cancelled successfully." });
     }
 
+    [HttpPost("replay-policy-created-events")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> ReplayPolicyCreatedEvents([FromQuery] string? status = "Active")
+    {
+        var result = await _policyService.ReplayPolicyCreatedEventsAsync(status);
+        if (!result.IsSuccess) return BadRequest(new { result.ErrorMessage });
+
+        return Ok(new
+        {
+            ReplayedCount = result.Data,
+            Message = "PolicyCreated events replayed successfully."
+        });
+    }
+
     [HttpGet("{policyId}/details")]
     public async Task<IActionResult> GetPolicyDocument(Guid policyId)
     {

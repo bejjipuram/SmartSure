@@ -8,6 +8,7 @@ public interface IPolicyRepository
     Task<PagedResult<Domain.Entities.Policy>> GetPoliciesByUserIdAsync(Guid userId, int page, int pageSize);
     Task<Domain.Entities.Policy?> GetPolicyByIdAsync(Guid policyId);
     Task<Domain.Entities.Policy?> GetPolicyByIdAndUserIdAsync(Guid policyId, Guid userId);
+    Task<IReadOnlyList<Domain.Entities.Policy>> GetPoliciesForReplayAsync(string? status);
     Task AddPolicyAsync(Domain.Entities.Policy policy);
     Task UpdatePolicyAsync(Domain.Entities.Policy policy);
 

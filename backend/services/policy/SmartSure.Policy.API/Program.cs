@@ -117,8 +117,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings["Issuer"] ?? "SmartSureIdentity",
-            ValidAudiences = jwtSettings.GetSection("Audience").Get<string[]>(),
+            ValidIssuer = jwtSettings["Issuer"] ?? "SmartSureIdentity-Api",
+            ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new RsaSecurityKey(rsa)
         };
     });
@@ -154,9 +154,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<PolicyDbContext>();
-    // If the database doesn't exist, this will apply cleanly
-    // If migrations are added, it will apply them. For now, EnsureCreated is safer if no migrations exist.
-    context.Database.EnsureCreated();
+    context.Database.Migrate();
 }
 
 app.Run();
