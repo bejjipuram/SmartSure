@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -38,8 +38,38 @@ export class ManageClaimsComponent implements OnInit {
   documents: ClaimDocument[] = [];
   docsLoading = false;
 
+  // Remarks Modal State
+  isRemarksOpen = false;
+  remarks = '';
+  targetClaimId: number | null = null;
+  targetAction: 'approve' | 'reject' | 'review' | null = null;
+  processing = false;
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any): void {
+    if (this.remarks.trim().length > 0) {
+      $event.returnValue = true;
+    }
+  }
+
   ngOnInit(): void {
     this.loadClaims();
+    this.restoreDraft();
+  }
+
+  private getDraftKey(): string {
+    return `claim_remark_draft_${this.targetClaimId}_${this.targetAction}`;
+  }
+
+  onRemarksChange(): void {
+    if (this.targetClaimId && this.targetAction) {
+      localStorage.setItem(this.getDraftKey(), this.remarks);
+    }
+  }
+
+  restoreDraft(): void {
+    // This could be more generic, but for now we'll check if a modal was open
+    // In a real app, you might store which claim was being processed too.
   }
 
   loadClaims(): void {
@@ -70,18 +100,41 @@ export class ManageClaimsComponent implements OnInit {
   }
 
   processClaim(id: number, action: 'approve' | 'reject' | 'review'): void {
-    const remark = prompt(`Enter remarks for ${action}:`);
-    if (remark === null) return;
+    this.targetClaimId = id;
+    this.targetAction = action;
+    this.isRemarksOpen = true;
+    this.remarks = localStorage.getItem(this.getDraftKey()) || '';
+  }
 
-    const obs = action === 'approve'
-      ? this.claimService.adminApproveClaim(id, remark)
-      : action === 'reject'
-        ? this.claimService.adminRejectClaim(id, remark)
-        : this.claimService.adminReviewClaim(id, remark);
+  cancelProcess(): void {
+    this.isRemarksOpen = false;
+    this.targetClaimId = null;
+    this.targetAction = null;
+    this.remarks = '';
+  }
+
+  confirmProcess(): void {
+    if (!this.targetClaimId || !this.targetAction) return;
+
+    this.processing = true;
+    const obs = this.targetAction === 'approve'
+      ? this.claimService.adminApproveClaim(this.targetClaimId, this.remarks)
+      : this.targetAction === 'reject'
+        ? this.claimService.adminRejectClaim(this.targetClaimId, this.remarks)
+        : this.claimService.adminReviewClaim(this.targetClaimId, this.remarks);
 
     obs.subscribe({
-      next: () => { this.loadClaims(); this.closeDetail(); },
-      error: (err) => alert('Operation failed: ' + (err.error?.errorMessage || 'Unknown error'))
+      next: () => {
+        localStorage.removeItem(this.getDraftKey());
+        this.processing = false;
+        this.cancelProcess();
+        this.loadClaims();
+        this.closeDetail();
+      },
+      error: (err) => {
+        this.processing = false;
+        alert('Operation failed: ' + (err.error?.errorMessage || 'Unknown error'));
+      }
     });
   }
 

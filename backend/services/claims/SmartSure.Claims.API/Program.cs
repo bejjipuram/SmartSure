@@ -79,7 +79,7 @@ builder.Services.AddScoped<IClaimRepository, ClaimRepository>();
 builder.Services.AddScoped<IClaimDocumentRepository, ClaimDocumentRepository>();
 builder.Services.AddScoped<IClaimHistoryRepository, ClaimHistoryRepository>();
 
-builder.Services.AddMassTransitWithRabbitMq(builder.Configuration, x =>
+builder.Services.AddMassTransitWithRabbitMq(builder.Configuration, "claims", x =>
 {
     x.AddConsumers(typeof(SmartSure.Claims.Application.Consumers.PolicyCreatedConsumer).Assembly);
 });

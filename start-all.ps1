@@ -3,6 +3,14 @@ Write-Host "Starting SmartSure services..." -ForegroundColor Cyan
 
 $root = $PSScriptRoot
 
+# ── Build all projects first to avoid parallel build locks ──────────────────
+Write-Host "Building all backend projects..." -ForegroundColor Cyan
+dotnet build backend -c Debug
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Build failed. Please fix errors before starting services." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
 # Start backend services in separate windows
 $services = @(
     @{ Name = "Identity API";  Project = "backend/services/identity/SmartSure.Identity.API/SmartSure.Identity.API.csproj" },
@@ -14,7 +22,7 @@ $services = @(
 
 foreach ($svc in $services) {
     Write-Host "  Starting $($svc.Name)..." -ForegroundColor Yellow
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$root'; dotnet run --project $($svc.Project)" -WindowStyle Normal
+    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$root'; dotnet run --project $($svc.Project) --no-build" -WindowStyle Normal
 }
 
 # Start frontend

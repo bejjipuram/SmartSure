@@ -171,3 +171,41 @@
     </div>
   </div>
 </div>
+
+<!-- Remarks Entry Modal -->
+<div *ngIf="isRemarksOpen" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5); z-index: 1060;">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom-0">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-chat-left-text me-2 text-primary"></i>
+          {{ targetAction | titlecase }} Claim
+        </h5>
+        <button type="button" class="btn-close" (click)="cancelProcess()" [disabled]="processing"></button>
+      </div>
+      <div class="modal-body py-0">
+        <p class="text-muted small mb-3">Please provide mandatory remarks for this action. Your progress is automatically saved.</p>
+        <div class="form-floating">
+          <textarea class="form-control" placeholder="Leave a remark here" 
+                    id="claimRemarks" style="height: 150px"
+                    [(ngModel)]="remarks" (ngModelChange)="onRemarksChange()"
+                    [disabled]="processing"></textarea>
+          <label for="claimRemarks">Remarks (Required)</label>
+        </div>
+      </div>
+      <div class="modal-footer border-top-0 gap-2">
+        <button type="button" class="btn btn-light rounded-pill px-4" (click)="cancelProcess()" [disabled]="processing">Cancel</button>
+        <button type="button" class="btn rounded-pill px-4" 
+                [ngClass]="{
+                  'btn-success': targetAction === 'approve',
+                  'btn-danger': targetAction === 'reject',
+                  'btn-info text-white': targetAction === 'review'
+                }"
+                (click)="confirmProcess()" [disabled]="processing || !remarks.trim()">
+          <span *ngIf="processing" class="spinner-border spinner-border-sm me-2"></span>
+          {{ processing ? 'Processing...' : 'Confirm ' + (targetAction | titlecase) }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

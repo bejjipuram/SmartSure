@@ -79,7 +79,7 @@ builder.Services.AddScoped<IPolicyRepository, PolicyRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddHttpClient();
 
-builder.Services.AddMassTransitWithRabbitMq(builder.Configuration, x =>
+builder.Services.AddMassTransitWithRabbitMq(builder.Configuration, "policy", x =>
 {
     x.AddConsumers(typeof(SmartSure.Policy.Application.Consumers.UserRegisteredConsumer).Assembly);
 });

@@ -119,7 +119,7 @@ builder.Services.AddScoped<IAdminAuditLogService, AdminAuditLogService>();
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-builder.Services.AddMassTransitWithRabbitMq(builder.Configuration, x =>
+builder.Services.AddMassTransitWithRabbitMq(builder.Configuration, "admin", x =>
 {
     x.AddConsumers(typeof(ClaimSubmittedConsumer).Assembly);
 });

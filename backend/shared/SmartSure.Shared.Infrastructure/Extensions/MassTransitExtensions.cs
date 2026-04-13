@@ -11,11 +11,19 @@ public static class MassTransitExtensions
     public static IServiceCollection AddMassTransitWithRabbitMq(
         this IServiceCollection services, 
         IConfiguration configuration,
+        string? prefix = null,
         Action<IBusRegistrationConfigurator>? configure = null)
     {
         services.AddMassTransit(x =>
         {
-            x.SetKebabCaseEndpointNameFormatter();
+            if (string.IsNullOrEmpty(prefix))
+            {
+                x.SetKebabCaseEndpointNameFormatter();
+            }
+            else
+            {
+                x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter(prefix, false));
+            }
 
             configure?.Invoke(x);
 

@@ -144,7 +144,10 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IOtpRepository, OtpRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-builder.Services.AddMassTransitWithRabbitMq(builder.Configuration);
+builder.Services.AddMassTransitWithRabbitMq(builder.Configuration, "identity", x =>
+{
+    // No consumers in identity service yet, but adding anyway for consistency
+});
 
 // DI — Application Services
 builder.Services.AddScoped<IOtpService, OtpService>();
