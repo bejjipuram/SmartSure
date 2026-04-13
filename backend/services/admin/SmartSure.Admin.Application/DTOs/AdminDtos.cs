@@ -10,6 +10,7 @@ public class AdminClaimDto
     public string ClaimNumber { get; set; } = string.Empty;
     public decimal ClaimAmount { get; set; }
     public string Status { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public DateTime IncidentDate { get; set; }
     public DateTime CreatedAt { get; set; }
 }

@@ -135,7 +135,7 @@ public class ClaimManagementService : IClaimManagementService
         await _unitOfWork.SaveChangesAsync();
 
         // Publish Event
-        var claimSubmittedEvent = new ClaimSubmittedEvent(claim.Id, claim.PolicyId, claim.UserId, validPolicy.PolicyNumber, claim.ClaimNumber, claim.ClaimAmount, claim.IncidentDate, "", "Submitted", validPolicy.CustomerName);
+        var claimSubmittedEvent = new ClaimSubmittedEvent(claim.Id, claim.PolicyId, claim.UserId, validPolicy.PolicyNumber, claim.ClaimNumber, claim.ClaimAmount, claim.IncidentDate, claim.Description, "", "Submitted", validPolicy.CustomerName);
         await _publishEndpoint.Publish(claimSubmittedEvent);
 
         return Result<ClaimDto>.Success(MapToDto(claim));
@@ -192,7 +192,7 @@ public class ClaimManagementService : IClaimManagementService
         var policy = await _claimRepository.GetValidPolicyAsync(claim.PolicyId);
         var policyNumber = policy?.PolicyNumber ?? "Unknown";
 
-        var claimSubmittedEvent = new ClaimSubmittedEvent(claim.Id, claim.PolicyId, claim.UserId, policyNumber, claim.ClaimNumber, claim.ClaimAmount, claim.IncidentDate, "Draft", "Submitted");
+        var claimSubmittedEvent = new ClaimSubmittedEvent(claim.Id, claim.PolicyId, claim.UserId, policyNumber, claim.ClaimNumber, claim.ClaimAmount, claim.IncidentDate, claim.Description, "Draft", "Submitted");
         await _publishEndpoint.Publish(claimSubmittedEvent);
 
         await _unitOfWork.SaveChangesAsync();

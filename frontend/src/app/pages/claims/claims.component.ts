@@ -11,115 +11,136 @@ import { Claim, Policy } from '../../models/models';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <!-- Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-      <div class="d-flex gap-2 flex-wrap">
-        <button *ngFor="let tab of tabs"
-                [class]="'btn btn-sm ' + (activeTab === tab ? 'btn-primary' : 'btn-outline-secondary')"
-                (click)="activeTab = tab; applyFilter()">
-          {{ tab }}
-          <span *ngIf="countByStatus(tab) > 0" class="badge bg-white text-primary ms-1">{{ countByStatus(tab) }}</span>
-        </button>
+    <div class="fade-in">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h4 class="fw-bold text-dark m-0">Claims & Incident Reports</h4>
+          <p class="text-muted small mb-0">Track the status of your active and historical resolution requests</p>
+        </div>
+        <div class="d-flex gap-2 p-1 bg-light-soft rounded-pill border shadow-sm">
+          <button *ngFor="let tab of tabs"
+                  class="btn btn-sm rounded-pill px-3 py-1 border-0 fw-bold transition"
+                  [ngClass]="activeTab === tab ? 'btn-primary shadow-sm' : 'btn-ghost text-muted'"
+                  (click)="activeTab = tab; applyFilter()">
+            {{ tab }}
+            <span *ngIf="countByStatus(tab) > 0" 
+                  class="badge ms-1" 
+                  [ngClass]="activeTab === tab ? 'bg-white text-primary' : 'bg-primary-lite text-primary'">
+              {{ countByStatus(tab) }}
+            </span>
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Loading -->
-    <div *ngIf="loading" class="loading-spinner">
-      <div class="spinner-border text-primary"></div>
-    </div>
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border spinner-border-sm text-primary"></div>
+        <div class="mt-2 text-muted x-small fw-bold text-uppercase ls-wide">Querying Claims Registry...</div>
+      </div>
 
-    <!-- Error -->
-    <div *ngIf="error" class="alert alert-warning small mb-3">
-      <i class="bi bi-info-circle me-2"></i>{{ error }}
-    </div>
+      <div *ngIf="error && claims.length === 0" class="alert badge-pending border-0 shadow-sm py-3 mb-4">
+        <i class="bi bi-info-circle-fill me-2"></i>{{ error }}
+      </div>
 
-    <!-- Table -->
-    <div *ngIf="!loading" class="table-container">
-      <div class="table-responsive">
-        <table class="table table-hover mb-0">
-          <thead>
-            <tr>
-              <th>Claim #</th>
-              <th>Policy #</th>
-              <th>Type</th>
-              <th>Incident Date</th>
-              <th class="text-end">Amount</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let c of filtered" style="cursor:pointer;" (click)="openDetail(c)">
-              <td><code class="small">{{ c.claimNumber || 'CLM-' + c.id }}</code></td>
-              <td><code class="small">{{ getPolicyNumber(c.policyId) }}</code></td>
-              <td>Insurance</td>
-              <td>{{ c.incidentDate | date:'MMM d, y':locale.timezone:locale.locale }}</td>
-              <td class="text-end fw-medium">₹{{ c.claimAmount | number:'1.2-2' }}</td>
-              <td><span [class]="'badge rounded-pill ' + badgeClass(c.status)">{{ c.status }}</span></td>
-              <td>
-                <button class="btn btn-sm btn-light" (click)="$event.stopPropagation(); openDetail(c)">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </td>
-            </tr>
-            <tr *ngIf="filtered.length === 0">
-              <td colspan="7" class="text-center py-5">
-                <div class="empty-state">
-                  <i class="bi bi-file-earmark-x text-muted" style="font-size:2rem;"></i>
-                  <p class="mt-2 mb-0 text-muted">No claims found</p>
+      <div *ngIf="!loading" class="card border-0 shadow-sm rounded-4 overflow-hidden slide-up">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+              <tr>
+                <th class="ps-4 py-3 text-muted x-small fw-bold text-uppercase ls-wide">Incident Identifier</th>
+                <th class="py-3 text-muted x-small fw-bold text-uppercase ls-wide">Associated Policy</th>
+                <th class="py-3 text-muted x-small fw-bold text-uppercase ls-wide text-center">Event Date</th>
+                <th class="py-3 text-muted x-small fw-bold text-uppercase ls-wide text-end">Assessment</th>
+                <th class="py-3 text-muted x-small fw-bold text-uppercase ls-wide text-center">Status</th>
+                <th class="pe-4 py-3 text-end"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of filtered" class="transition" style="cursor:pointer;" (click)="openDetail(c)">
+                <td class="ps-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-light text-primary sm rounded-circle"><i class="bi bi-file-earmark-medical"></i></div>
+                    <code class="text-primary fw-bold small">{{ c.claimNumber || 'CLM-' + c.id }}</code>
+                  </div>
+                </td>
+                <td>
+                  <div class="badge bg-light-soft text-dark rounded-pill border px-2 py-1 x-small fw-mono">
+                    {{ getPolicyNumber(c.policyId) }}
+                  </div>
+                </td>
+                <td class="text-center text-muted small fw-bold">
+                  {{ c.incidentDate | date:'mediumDate' }}
+                </td>
+                <td class="text-end fw-bold text-dark">
+                  ₹{{ c.claimAmount | number:'1.2-2' }}
+                </td>
+                <td class="text-center">
+                  <span class="badge rounded-pill px-3 py-1" [ngClass]="badgeClass(c.status)">{{ c.status }}</span>
+                </td>
+                <td class="pe-4 text-end">
+                  <div class="stat-icon bg-light text-muted sm rounded-circle d-inline-flex pointer"><i class="bi bi-chevron-right"></i></div>
+                </td>
+              </tr>
+              <tr *ngIf="filtered.length === 0">
+                <td colspan="6" class="text-center py-5">
+                  <div class="stat-icon bg-light text-muted mx-auto mb-3" style="width:56px; height:56px;">
+                    <i class="bi bi-inbox fs-3"></i>
+                  </div>
+                  <h6 class="fw-bold text-muted">No Claims Found in this Category</h6>
+                  <p class="x-small text-muted mb-0">Try selecting a different status filter or initiate a new claim.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Detail Modal -->
+      <div *ngIf="selectedClaim" class="modal-glass fade-in" (click)="selectedClaim = null">
+        <div class="modal-glass-content p-0" (click)="$event.stopPropagation()">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+               <div class="d-flex align-items-center gap-2">
+                 <div class="stat-icon bg-primary text-white sm rounded-circle"><i class="bi bi-briefcase-fill"></i></div>
+                 <h5 class="modal-title fw-bold m-0">Claim Review</h5>
+               </div>
+               <button type="button" class="btn-close" (click)="selectedClaim = null"></button>
+            </div>
+            <div class="modal-body p-4 pt-3">
+              <div class="d-flex align-items-center justify-content-between mb-4 bg-light-soft p-3 rounded-4 border">
+                <span class="badge rounded-pill px-3 py-2" [ngClass]="badgeClass(selectedClaim.status)">
+                  {{ selectedClaim.status }}
+                </span>
+                <code class="text-primary fw-bold">{{ selectedClaim.claimNumber }}</code>
+              </div>
+              
+              <div class="row g-4 mb-4">
+                <div class="col-6">
+                  <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Policy Reference</label>
+                  <span class="fw-bold text-dark">{{ getPolicyNumber(selectedClaim.policyId) }}</span>
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+                <div class="col-6 text-end">
+                  <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Incident Timeline</label>
+                  <span class="fw-bold text-dark">{{ selectedClaim.incidentDate | date:'mediumDate' }}</span>
+                </div>
+                <div class="col-6">
+                  <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Submission Logged</label>
+                  <span class="fw-medium text-muted small">{{ selectedClaim.createdAt | date:'MMM d, y, h:mm a' }}</span>
+                </div>
+                <div class="col-6 text-end">
+                  <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Claimed Valuation</label>
+                  <span class="fw-bold text-primary fs-5">₹{{ selectedClaim.claimAmount | number:'1.2-2' }}</span>
+                </div>
+              </div>
 
-    <!-- Detail Modal -->
-    <div *ngIf="selectedClaim" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.4);">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4">
-          <div class="modal-header border-bottom-0">
-            <h5 class="modal-title fw-bold">Claim Details</h5>
-            <button type="button" class="btn-close" (click)="selectedClaim = null"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3 d-flex align-items-center gap-3">
-              <span [class]="'badge rounded-pill fs-6 ' + badgeClass(selectedClaim.status)">
-                {{ selectedClaim.status }}
-              </span>
-              <code class="text-muted">{{ selectedClaim.claimNumber }}</code>
-            </div>
-            <div class="row g-3 mb-3">
-              <div class="col-6">
-                <small class="text-muted d-block">Policy #</small>
-                <span class="fw-medium">{{ getPolicyNumber(selectedClaim.policyId) }}</span>
-              </div>
-              <div class="col-6">
-                <small class="text-muted d-block">Status</small>
-                <span class="fw-medium">{{ selectedClaim.status }}</span>
-              </div>
-              <div class="col-6">
-                <small class="text-muted d-block">Incident Date</small>
-                <span class="fw-medium">{{ selectedClaim.incidentDate | date:'MMM d, y':locale.timezone:locale.locale }}</span>
-              </div>
-              <div class="col-6">
-                <small class="text-muted d-block">Filed On</small>
-                <span class="fw-medium">{{ selectedClaim.createdAt | date:'MMM d, y':locale.timezone:locale.locale }}</span>
-              </div>
-              <div class="col-12">
-                <small class="text-muted d-block">Claim Amount</small>
-                <span class="fw-bold text-primary fs-5">₹{{ selectedClaim.claimAmount | number:'1.2-2' }}</span>
-              </div>
-              <div class="col-12">
-                <small class="text-muted d-block mb-1">Description</small>
-                <p class="mb-0 small">{{ selectedClaim.description }}</p>
+              <div class="incident-narrative mt-2">
+                <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block mb-2">Adjuster Narrative</label>
+                <div class="p-3 bg-light rounded-4 border small text-dark" style="line-height: 1.6;">
+                  {{ selectedClaim.description }}
+                </div>
               </div>
             </div>
-          </div>
-          <div class="modal-footer border-top-0">
-            <button class="btn btn-outline-secondary" (click)="selectedClaim = null">Close</button>
-          </div>
+            <div class="modal-footer border-0 pt-0 pb-4 justify-content-center">
+              <button class="btn btn-primary rounded-pill px-5 fw-bold shadow" (click)="selectedClaim = null">Acknowledge</button>
+            </div>
         </div>
       </div>
     </div>

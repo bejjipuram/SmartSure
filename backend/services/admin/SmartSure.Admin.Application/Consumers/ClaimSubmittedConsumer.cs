@@ -45,6 +45,7 @@ public class ClaimSubmittedConsumer : IConsumer<ClaimSubmittedEvent>
                 ClaimNumber = message.ClaimNumber,
                 ClaimAmount = message.ClaimAmount,
                 Status = message.NewStatus,
+                Description = message.Description,
                 IncidentDate = message.IncidentDate,
                 CreatedAt = DateTime.UtcNow
             };

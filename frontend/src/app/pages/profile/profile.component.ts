@@ -36,7 +36,7 @@ import { User } from '../../models/models';
               <label class="form-label small fw-medium">Phone Number</label>
               <input type="tel" class="form-control" [(ngModel)]="phone" name="phone" required>
             </div>
-            <button type="submit" class="btn btn-gradient px-4" [disabled]="profileLoading">
+            <button type="submit" class="btn btn-primary px-4 shadow-sm" [disabled]="profileLoading">
               <span *ngIf="profileLoading" class="spinner-border spinner-border-sm me-2"></span>
               {{ profileLoading ? 'Saving...' : 'Save Changes' }}
             </button>
@@ -69,7 +69,7 @@ import { User } from '../../models/models';
               <label class="form-label small fw-medium">Confirm New Password</label>
               <input type="password" class="form-control" [(ngModel)]="confirmNewPassword" name="confirmNewPassword" required placeholder="••••••••">
             </div>
-            <button type="submit" class="btn btn-gradient px-4" [disabled]="passLoading">
+            <button type="submit" class="btn btn-primary px-4 shadow-sm" [disabled]="passLoading">
               <span *ngIf="passLoading" class="spinner-border spinner-border-sm me-2"></span>
               {{ passLoading ? 'Updating...' : 'Update Password' }}
             </button>

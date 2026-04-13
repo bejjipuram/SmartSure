@@ -20,104 +20,142 @@ interface AdminUser {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h5 class="fw-bold mb-0">Manage Users</h5>
-    </div>
-
-    <div class="table-container">
-      <div class="px-3 py-3 border-bottom d-flex gap-2 flex-wrap">
-        <input class="form-control form-control-sm" style="max-width:220px;"
-               placeholder="Search name or email..." [(ngModel)]="searchTerm" (input)="onSearch()">
-        <select class="form-select form-select-sm" style="max-width:150px;" [(ngModel)]="roleFilter" (change)="onSearch()">
-          <option value="">All Roles</option>
-          <option value="Policyholder">Policyholder</option>
-          <option value="Admin">Admin</option>
-        </select>
-      </div>
-
-      <div *ngIf="loading" class="text-center py-5">
-        <div class="spinner-border text-primary"></div>
-      </div>
-
-      <div class="table-responsive" *ngIf="!loading">
-        <table class="table table-hover mb-0 small">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Last Login</th>
-              <th>Joined</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let u of users">
-              <td class="fw-medium">{{ u.fullName }}</td>
-              <td class="text-muted">{{ u.email }}</td>
-              <td><span class="badge" [class]="u.role === 'Admin' ? 'bg-primary' : 'bg-secondary'">{{ u.role }}</span></td>
-              <td>
-                <span class="badge rounded-pill" [class]="u.isActive ? 'bg-success' : 'bg-danger'">
-                  {{ u.isActive ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-              <td class="text-muted">{{ u.lastLogin | date:'mediumDate' }}</td>
-              <td class="text-muted">{{ u.createdAt | date:'mediumDate' }}</td>
-              <td>
-                <div class="d-flex gap-1">
-                  <button class="btn btn-sm btn-outline-primary" (click)="openRoleModal(u)"
-                          title="Change Role">
-                    <i class="bi bi-person-gear"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" (click)="deleteUser(u.userId)"
-                          [disabled]="u.role === 'Admin'" title="Deactivate">
-                    <i class="bi bi-person-x"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr *ngIf="users.length === 0">
-              <td colspan="7" class="text-center text-muted py-4">No users found.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top small text-muted" *ngIf="totalCount > pageSize">
-        <span>Showing {{ (page - 1) * pageSize + 1 }}–{{ min(page * pageSize, totalCount) }} of {{ totalCount }}</span>
-        <div class="d-flex gap-1">
-          <button class="btn btn-sm btn-outline-secondary" [disabled]="page === 1" (click)="changePage(page - 1)">‹</button>
-          <button class="btn btn-sm btn-outline-secondary" [disabled]="page >= totalPages" (click)="changePage(page + 1)">›</button>
+    <div class="fade-in">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h4 class="fw-bold text-dark m-0">Identity & Access</h4>
+          <p class="text-muted small mb-0">Manage system users, roles and security permissions</p>
+        </div>
+        <div class="d-flex gap-3">
+          <div class="search-container">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" 
+                   class="form-control search-input" 
+                   placeholder="Search name or email..." 
+                   [(ngModel)]="searchTerm" 
+                   (input)="onSearch()">
+          </div>
+          <select class="form-select status-select shadow-sm" [(ngModel)]="roleFilter" (change)="onSearch()">
+            <option value="">All Roles</option>
+            <option value="Policyholder">Policyholders</option>
+            <option value="Admin">Administrators</option>
+          </select>
         </div>
       </div>
-    </div>
 
-    <!-- Change Role Modal -->
-    <div class="modal fade show d-block" style="background:rgba(0,0,0,0.5)" *ngIf="showRoleModal && selectedUser">
-      <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h6 class="modal-title fw-semibold">Change Role</h6>
-            <button class="btn-close" (click)="showRoleModal = false"></button>
-          </div>
-          <div class="modal-body">
-            <p class="small text-muted mb-3">User: <strong>{{ selectedUser.fullName }}</strong></p>
-            <p class="small text-muted mb-3">Current role: <span class="badge bg-secondary">{{ selectedUser.role }}</span></p>
-            <label class="form-label small fw-medium">Assign New Role</label>
-            <select class="form-select form-select-sm" [(ngModel)]="newRole">
-              <option value="Policyholder">Policyholder</option>
-              <option value="Admin">Admin</option>
-            </select>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary btn-sm" (click)="showRoleModal = false">Cancel</button>
-            <button class="btn btn-primary btn-sm" (click)="saveRole()" [disabled]="saving">
-              <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
-              Save
-            </button>
-          </div>
+      <div class="card border-0 shadow-sm overflow-hidden">
+        <div *ngIf="loading" class="text-center py-5">
+          <div class="spinner-border spinner-border-sm text-primary"></div>
+          <div class="mt-2 text-muted small">Synchronizing user data...</div>
+        </div>
+
+        <div class="table-responsive" *ngIf="!loading">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th class="ps-4">User Details</th>
+                <th>Security Role</th>
+                <th>Account Status</th>
+                <th>Last Activity</th>
+                <th>Joined</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let u of users">
+                <td class="ps-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="avatar bg-primary-lite text-primary fw-bold">
+                      {{ u.fullName.charAt(0) }}
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">{{ u.fullName }}</div>
+                      <div class="text-muted small">{{ u.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge rounded-pill" [ngClass]="u.role === 'Admin' ? 'bg-primary text-white' : 'bg-info-lite text-info'">
+                    {{ u.role }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge rounded-pill" [ngClass]="u.isActive ? 'badge-approved' : 'badge-rejected'">
+                    {{ u.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="text-muted small">{{ (u.lastLogin | date:'mediumDate') || 'No activity' }}</td>
+                <td class="text-muted small">{{ u.createdAt | date:'mediumDate' }}</td>
+                <td class="text-end pe-4">
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-sm btn-outline-primary mb-0 shadow-sm" 
+                            (click)="openRoleModal(u)" title="Modify Permissions">
+                      <i class="bi bi-shield-lock me-1"></i> Permissions
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger mb-0 shadow-sm" 
+                            (click)="deleteUser(u.userId)" [disabled]="u.role === 'Admin'" title="Deactivate Account">
+                      <i class="bi bi-person-x me-1"></i> Deactivate
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="users.length === 0">
+                <td colspan="6" class="text-center py-5 text-muted">No users found matching your filters.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="card-footer bg-transparent border-top-0 py-3 d-flex align-items-center justify-content-between px-4" *ngIf="totalCount > pageSize">
+          <div class="small text-muted">Showing <strong>{{ (page - 1) * pageSize + 1 }}</strong>–<strong>{{ min(page * pageSize, totalCount) }}</strong> of <strong>{{ totalCount }}</strong> users</div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="page === 1">
+                <button class="page-link" (click)="changePage(page - 1)"><i class="bi bi-chevron-left"></i></button>
+              </li>
+              <li class="page-item active"><span class="page-link">{{ page }}</span></li>
+              <li class="page-item" [class.disabled]="page >= totalPages">
+                <button class="page-link" (click)="changePage(page + 1)"><i class="bi bi-chevron-right"></i></button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Change Role Modal -->
+      <div class="modal-glass fade-in" *ngIf="showRoleModal && selectedUser" (click)="showRoleModal = false">
+        <div class="modal-glass-content" (click)="$event.stopPropagation()" style="max-width: 400px;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+              <h5 class="modal-title fw-bold">Modify Permissions</h5>
+              <button class="btn-close" (click)="showRoleModal = false"></button>
+            </div>
+            <div class="modal-body py-4 px-4">
+              <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="user-avatar" style="width:48px;height:48px;font-size:1rem;">
+                  {{ selectedUser.fullName.charAt(0) }}
+                </div>
+                <div>
+                  <div class="fw-bold">{{ selectedUser.fullName }}</div>
+                  <div class="text-muted x-small">Current: {{ selectedUser.role }}</div>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Assign New Security Role</label>
+                <select class="form-select premium-select shadow-sm" [(ngModel)]="newRole">
+                  <option value="Policyholder">Policyholder (Basic)</option>
+                  <option value="Admin">Administrator (Root)</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 gap-2 px-4">
+              <button class="btn btn-light rounded-pill px-4" (click)="showRoleModal = false">Cancel</button>
+              <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" (click)="saveRole()" [disabled]="saving">
+                <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+                Apply Changes
+              </button>
+            </div>
         </div>
       </div>
     </div>

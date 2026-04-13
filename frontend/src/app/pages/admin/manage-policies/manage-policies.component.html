@@ -1,82 +1,96 @@
-<div class="container-fluid py-4">
-  <div class="card shadow-sm border-0 rounded-4">
-    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
-      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-file-earmark-text me-2"></i>Global Policy Management</h5>
-      <div class="d-flex gap-2">
-        <div class="input-group input-group-sm" style="width: 220px;">
-          <input type="text" class="form-control rounded-start-pill border-end-0" placeholder="Search policies..." [(ngModel)]="searchTerm" (ngModelChange)="onSearch()">
-          <button class="btn btn-outline-secondary rounded-end-pill border-start-0" (click)="onSearch()">
-            <i class="bi bi-search"></i>
-          </button>
-        </div>
-        <select class="form-select form-select-sm rounded-pill" style="width:140px;" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilter()">
-          <option value="">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
-      </div>
+<div class="fade-in">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h4 class="fw-bold text-dark m-0">Global Policy Management</h4>
+      <p class="text-muted small mb-0">Manage and monitor all insurance policies across the system</p>
     </div>
-    
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-secondary small text-uppercase">
-            <tr>
-              <th class="ps-4">Policy #</th>
-              <th>Customer</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Premium</th>
-              <th>IDV</th>
-              <th class="text-end pe-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngIf="loading">
-              <td colspan="6" class="text-center py-5">
-                <div class="spinner-border spinner-border-sm text-primary"></div>
-              </td>
-            </tr>
-            <tr *ngFor="let p of policies">
-              <td class="ps-4 fw-bold">#{{ p.policyNumber }}</td>
-              <td>{{ p.customerName }}</td>
-              <td>{{ p.insuranceType }}</td>
-              <td>
-                <span class="badge rounded-pill" [ngClass]="{
-                  'bg-success-lite text-success': p.status === 'Active' || p.status === 'ACTIVE',
-                  'bg-danger-lite text-danger': p.status === 'Cancelled' || p.status === 'CANCELLED',
-                  'bg-secondary-lite text-secondary': p.status === 'Expired' || p.status === 'EXPIRED',
-                  'bg-warning-lite text-warning': p.status === 'Pending' || p.status === 'PENDING'
-                }">{{ p.status }}</span>
-              </td>
-              <td class="fw-semibold text-primary">₹{{ p.premiumAmount | number:'1.2-2' }}</td>
-              <td class="fw-semibold text-secondary">₹{{ p.insuredDeclaredValue | number:'1.2-2' }}</td>
-              <td class="text-end pe-4">
-                <button class="btn btn-sm btn-outline-danger rounded-pill"
-                        (click)="cancelPolicy(p.policyId)"
-                        [disabled]="p.status === 'Cancelled' || p.status === 'CANCELLED'">
-                  Cancel
-                </button>
-              </td>
-            </tr>
-            <tr *ngIf="!loading && policies.length === 0">
-              <td colspan="6" class="text-center py-5 text-muted">No policies found.</td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="d-flex gap-3">
+      <div class="search-container">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" 
+               class="form-control search-input" 
+               placeholder="Search by policy #, customer..." 
+               [(ngModel)]="searchTerm" 
+               (ngModelChange)="onSearch()">
       </div>
+      <select class="form-select status-select shadow-sm" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilter()">
+        <option value="">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="Cancelled">Cancelled</option>
+        <option value="Expired">Expired</option>
+      </select>
     </div>
-    
-    <div class="card-footer bg-white border-top py-3 d-flex align-items-center justify-content-between">
-      <div class="small text-muted">Showing {{ policies.length }} of {{ totalCount }} policies</div>
+  </div>
+
+  <div class="card border-0 shadow-sm overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th class="ps-4">Policy Number</th>
+            <th>Customer</th>
+            <th>Insurance Type</th>
+            <th>Status</th>
+            <th>Premium</th>
+            <th>IDV (System)</th>
+            <th class="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="7" class="text-center py-5">
+              <div class="spinner-border spinner-border-sm text-primary"></div>
+              <div class="mt-2 text-muted small">Loading policies...</div>
+            </td>
+          </tr>
+          <tr *ngFor="let p of policies">
+            <td class="ps-4">
+              <code class="fw-bold text-primary">#{{ p.policyNumber }}</code>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ p.customerName }}</div>
+            </td>
+            <td>
+              <span class="badge bg-primary-lite text-primary rounded-pill">{{ p.insuranceType }}</span>
+            </td>
+            <td>
+              <span class="badge rounded-pill" [ngClass]="{
+                'badge-approved': p.status === 'Active' || p.status === 'ACTIVE',
+                'badge-rejected': p.status === 'Cancelled' || p.status === 'CANCELLED',
+                'bg-secondary text-white': p.status === 'Expired' || p.status === 'EXPIRED',
+                'badge-pending': p.status === 'Pending' || p.status === 'PENDING'
+              }">{{ p.status }}</span>
+            </td>
+            <td class="fw-bold">₹{{ p.premiumAmount | number:'1.2-2' }}</td>
+            <td class="text-muted small">₹{{ p.insuredDeclaredValue | number:'1.2-2' }}</td>
+            <td class="text-end pe-4">
+              <button class="btn btn-sm btn-outline-danger shadow-sm px-3"
+                      (click)="cancelPolicy(p.policyId)"
+                      [disabled]="p.status === 'Cancelled' || p.status === 'CANCELLED'"
+                      title="Cancel Policy">
+                <i class="bi bi-x-circle me-1"></i> Cancel
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="!loading && policies.length === 0">
+            <td colspan="7" class="text-center py-5">
+              <div class="text-muted">No policies found matching your criteria.</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer bg-transparent border-top-0 py-3 d-flex align-items-center justify-content-between px-4">
+      <div class="small text-muted">Showing <strong>{{ policies.length }}</strong> of <strong>{{ totalCount }}</strong> results</div>
       <nav>
         <ul class="pagination pagination-sm mb-0">
           <li class="page-item" [class.disabled]="page === 1">
-            <button class="page-link rounded-start-pill" (click)="changePage(page - 1)">Prev</button>
+            <button class="page-link" (click)="changePage(page - 1)"><i class="bi bi-chevron-left"></i></button>
           </li>
           <li class="page-item active"><span class="page-link">{{ page }}</span></li>
           <li class="page-item" [class.disabled]="page >= totalPages">
-            <button class="page-link rounded-end-pill" (click)="changePage(page + 1)">Next</button>
+            <button class="page-link" (click)="changePage(page + 1)"><i class="bi bi-chevron-right"></i></button>
           </li>
         </ul>
       </nav>

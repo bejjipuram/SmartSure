@@ -1,78 +1,104 @@
-<div class="container-fluid py-4">
-  <div class="card shadow-sm border-0 rounded-4">
-    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
-      <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-exclamation-circle me-2"></i>Global Claims Review</h5>
-      <select class="form-select form-select-sm rounded-pill w-auto" [(ngModel)]="statusFilter" (change)='onFilterChange()'>
+<div class="fade-in">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h4 class="fw-bold text-dark m-0">Global Claims Review</h4>
+      <p class="text-muted small mb-0">Prioritized triage and processing of insurance claims</p>
+    </div>
+    <div class="d-flex gap-2">
+      <select class="form-select status-select shadow-sm" [(ngModel)]="statusFilter" (change)='onFilterChange()'>
         <option value="">All Statuses</option>
-        <option value="Submitted">Submitted</option>
+        <option value="Submitted">Submitted (High Priority)</option>
         <option value="UnderReview">Under Review</option>
         <option value="Approved">Approved</option>
         <option value="Rejected">Rejected</option>
       </select>
     </div>
+  </div>
 
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-secondary small text-uppercase">
-            <tr>
-              <th class="ps-4">Claim #</th>
-              <th>Customer</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th class="text-end pe-4">Decisions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngIf="loading">
-              <td colspan="6" class="text-center py-5">
-                <div class="spinner-border spinner-border-sm text-primary"></div>
-              </td>
-            </tr>
-            <tr *ngFor="let c of claims">
-              <td class="ps-4 fw-bold text-primary">
-                <button class="btn btn-link p-0 fw-bold text-primary text-decoration-none" (click)="openDetail(c)">
-                  {{ c.claimNumber || '#' }}
+  <div class="card border-0 shadow-sm overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th class="ps-4">Claim ID</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Incident Date</th>
+            <th>Status</th>
+            <th class="text-end pe-4">Resolution Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="6" class="text-center py-5">
+              <div class="spinner-border spinner-border-sm text-primary"></div>
+              <div class="mt-2 text-muted small">Loading claims queue...</div>
+            </td>
+          </tr>
+          <tr *ngFor="let c of claims">
+            <td class="ps-4">
+              <button class="btn btn-link p-0 fw-bold text-primary text-decoration-none" (click)="openDetail(c)">
+                <code class="fw-bold">{{ c.claimNumber || '#' + c.claimId }}</code>
+              </button>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ c.customerName }}</div>
+            </td>
+            <td class="fw-bold text-dark">₹{{ c.claimAmount | number:'1.2-2' }}</td>
+            <td class="text-muted small">{{ c.incidentDate | date:'mediumDate':locale.timezone:locale.locale }}</td>
+            <td>
+              <span class="badge rounded-pill" [ngClass]="{
+                'badge-approved': c.status === 'Approved',
+                'badge-rejected': c.status === 'Rejected',
+                'badge-in-review': c.status === 'UnderReview' || c.status === 'Under Review',
+                'badge-pending': c.status === 'Submitted'
+              }">{{ c.status }}</span>
+            </td>
+            <td class="text-end pe-4">
+              <div class="btn-group btn-group-sm bg-white shadow-sm rounded-pill overflow-hidden border">
+                <button class="btn btn-outline-primary border-0 px-3" (click)="openDetail(c)" title="View Details">
+                  <i class="bi bi-eye"></i>
                 </button>
-              </td>
-              <td class="small">{{ c.customerName }}</td>
-              <td class="fw-bold">₹{{ c.claimAmount | number:'1.2-2' }}</td>
-              <td class="text-muted small">{{ c.incidentDate | date:'mediumDate':locale.timezone:locale.locale }}</td>
-              <td>
-                <span class="badge rounded-pill" [ngClass]="{
-                  'bg-success text-white': c.status === 'Approved',
-                  'bg-danger text-white': c.status === 'Rejected',
-                  'bg-primary text-white': c.status === 'UnderReview' || c.status === 'Under Review',
-                  'bg-warning text-dark': c.status === 'Submitted'
-                }">{{ c.status }}</span>
-              </td>
-              <td class="text-end pe-4">
-                <div class="btn-group btn-group-sm">
-                  <button class="btn btn-outline-secondary" (click)="openDetail(c)" title="View documents">
-                    <i class="bi bi-eye"></i>
-                  </button>
-                  <button class="btn btn-outline-info" (click)="processClaim(c.claimId, 'review')" [disabled]="c.status === 'Approved' || c.status === 'Rejected' || c.status === 'Under Review' || c.status === 'UnderReview'">Review</button>
-                  <button class="btn btn-outline-success" (click)="processClaim(c.claimId, 'approve')" [disabled]="c.status === 'Approved' || c.status === 'Rejected'">Approve</button>
-                  <button class="btn btn-outline-danger" (click)="processClaim(c.claimId, 'reject')" [disabled]="c.status === 'Approved' || c.status === 'Rejected'">Reject</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                <button class="btn btn-outline-info border-0 px-3 text-info" 
+                        (click)="processClaim(c.claimId, 'review')" 
+                        [disabled]="c.status === 'Approved' || c.status === 'Rejected' || c.status === 'Under Review' || c.status === 'UnderReview'"
+                        title="Mark Under Review">
+                  <i class="bi bi-hourglass-split"></i>
+                </button>
+                <button class="btn btn-outline-success border-0 px-3 text-success" 
+                        (click)="processClaim(c.claimId, 'approve')" 
+                        [disabled]="c.status === 'Approved' || c.status === 'Rejected'"
+                        title="Approve">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+                <button class="btn btn-outline-danger border-0 px-3 text-danger" 
+                        (click)="processClaim(c.claimId, 'reject')" 
+                        [disabled]="c.status === 'Approved' || c.status === 'Rejected'"
+                        title="Reject">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="!loading && claims.length === 0">
+            <td colspan="6" class="text-center py-5">
+              <div class="text-muted italic">No claims currently in queue.</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="card-footer bg-white border-top py-3 d-flex align-items-center justify-content-between">
-      <div class="small text-muted">Total {{ totalCount }} claims</div>
+    <div class="card-footer bg-transparent border-top-0 py-3 d-flex align-items-center justify-content-between px-4">
+      <div class="small text-muted">Total records: <strong>{{ totalCount }}</strong></div>
       <nav>
         <ul class="pagination pagination-sm mb-0">
           <li class="page-item" [class.disabled]="page === 1">
-            <button class="page-link rounded-start-pill" (click)="changePage(page - 1)">Previous</button>
+            <button class="page-link" (click)="changePage(page - 1)"><i class="bi bi-chevron-left"></i></button>
           </li>
           <li class="page-item active"><span class="page-link">{{ page }}</span></li>
           <li class="page-item" [class.disabled]="page >= totalPages">
-            <button class="page-link rounded-end-pill" (click)="changePage(page + 1)">Next</button>
+            <button class="page-link" (click)="changePage(page + 1)"><i class="bi bi-chevron-right"></i></button>
           </li>
         </ul>
       </nav>
@@ -81,121 +107,167 @@
 </div>
 
 <!-- Claim Detail Modal -->
-<div *ngIf="selectedClaim" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content rounded-4">
-      <div class="modal-header border-bottom-0">
+<div *ngIf="selectedClaim" class="modal-glass fade-in" (click)="closeDetail()">
+  <div class="modal-glass-content" (click)="$event.stopPropagation()" style="max-width: 900px;">
+    <div class="modal-header border-0 pb-0 px-4 pt-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon bg-primary-lite text-primary sm"><i class="bi bi-file-earmark-text"></i></div>
         <div>
-          <h5 class="modal-title fw-bold mb-1">Claim Details</h5>
-          <code class="text-muted small">{{ selectedClaim.claimNumber }}</code>
+          <h5 class="modal-title fw-bold m-0">Claim Review</h5>
+          <code class="text-primary small fw-bold">{{ selectedClaim.claimNumber || '#' + selectedClaim.claimId }}</code>
         </div>
-        <button type="button" class="btn-close" (click)="closeDetail()"></button>
       </div>
+      <button type="button" class="btn-close shadow-none" (click)="closeDetail()"></button>
+    </div>
 
-      <div class="modal-body pt-0">
-        <!-- Claim Info -->
-        <div class="row g-3 mb-4">
-          <div class="col-6 col-md-3">
-            <small class="text-muted d-block">Customer</small>
-            <span class="fw-medium">{{ selectedClaim.customerName }}</span>
+    <div class="modal-body py-4 px-4 modal-dialog-scrollable" style="overflow-y: auto;">
+      <!-- Detailed Info Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <div class="p-3 bg-light rounded-3 h-100">
+            <small class="text-muted d-block text-uppercase ls-wide mb-1">Customer</small>
+            <div class="fw-bold">{{ selectedClaim.customerName }}</div>
           </div>
-          <div class="col-6 col-md-3">
-            <small class="text-muted d-block">Policy #</small>
-            <span class="fw-medium">{{ selectedClaim.policyNumber || '—' }}</span>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3 bg-light rounded-3 h-100">
+            <small class="text-muted d-block text-uppercase ls-wide mb-1">Policy</small>
+            <div class="fw-bold">#{{ selectedClaim.policyNumber || '—' }}</div>
           </div>
-          <div class="col-6 col-md-3">
-            <small class="text-muted d-block">Amount</small>
-            <span class="fw-bold text-primary">₹{{ selectedClaim.claimAmount | number:'1.2-2' }}</span>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3 bg-light rounded-3 h-100">
+            <small class="text-muted d-block text-uppercase ls-wide mb-1">Amount</small>
+            <div class="fw-bold text-primary">₹{{ selectedClaim.claimAmount | number:'1.2-2' }}</div>
           </div>
-          <div class="col-6 col-md-3">
-            <small class="text-muted d-block">Status</small>
-            <span class="badge rounded-pill" [ngClass]="{
-              'bg-success text-white': selectedClaim.status === 'Approved',
-              'bg-danger text-white': selectedClaim.status === 'Rejected',
-              'bg-primary text-white': selectedClaim.status === 'UnderReview' || selectedClaim.status === 'Under Review',
-              'bg-warning text-dark': selectedClaim.status === 'Submitted'
+        </div>
+        <div class="col-md-3">
+          <div class="p-3 bg-light rounded-3 h-100">
+            <small class="text-muted d-block text-uppercase ls-wide mb-1">Status</small>
+            <span class="badge rounded-pill mt-1" [ngClass]="{
+              'badge-approved': selectedClaim.status === 'Approved',
+              'badge-rejected': selectedClaim.status === 'Rejected',
+              'badge-in-review': selectedClaim.status === 'UnderReview' || selectedClaim.status === 'Under Review',
+              'badge-pending': selectedClaim.status === 'Submitted'
             }">{{ selectedClaim.status }}</span>
           </div>
-          <div class="col-6 col-md-3">
-            <small class="text-muted d-block">Incident Date</small>
-            <span class="fw-medium">{{ selectedClaim.incidentDate | date:'mediumDate':locale.timezone:locale.locale }}</span>
-          </div>
-          <div class="col-6 col-md-3">
-            <small class="text-muted d-block">Filed On</small>
-            <span class="fw-medium">{{ selectedClaim.createdAt | date:'mediumDate':locale.timezone:locale.locale }}</span>
-          </div>
         </div>
+      </div>
 
-        <!-- Documents -->
-        <h6 class="fw-semibold mb-3"><i class="bi bi-paperclip me-2"></i>Supporting Documents</h6>
-
-        <div *ngIf="docsLoading" class="text-center py-3">
-          <div class="spinner-border spinner-border-sm text-primary"></div>
-        </div>
-
-        <div *ngIf="!docsLoading && documents.length === 0" class="text-muted small py-2">
-          <i class="bi bi-info-circle me-1"></i>No documents uploaded for this claim.
-        </div>
-
-        <div *ngIf="!docsLoading && documents.length > 0" class="list-group list-group-flush">
-          <div *ngFor="let doc of documents" class="list-group-item px-0 d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-              <i class="bi bi-file-earmark-pdf text-danger fs-5"></i>
-              <div>
-                <div class="fw-medium small">{{ doc.fileName }}</div>
-                <div class="text-muted" style="font-size:0.75rem;">{{ doc.documentType }} · {{ doc.uploadedAt | date:'mediumDate' }}</div>
+      <div class="row g-4">
+        <div class="col-md-12">
+          <div class="card border shadow-none bg-light-soft rounded-3">
+            <div class="card-header bg-transparent border-0 pt-3">
+              <h6 class="fw-bold mb-0">Incident Details</h6>
+            </div>
+            <div class="card-body">
+              <p class="mb-0 text-dark">{{ selectedClaim.description || 'No description provided.' }}</p>
+              <div class="mt-3 d-flex gap-4">
+                <div>
+                  <small class="text-muted d-block small">Occurred On</small>
+                  <span class="fw-semibold">{{ selectedClaim.incidentDate | date:'mediumDate' }}</span>
+                </div>
+                <div>
+                  <small class="text-muted d-block small">Submitted On</small>
+                  <span class="fw-semibold">{{ selectedClaim.createdAt | date:'mediumDate' }}</span>
+                </div>
               </div>
             </div>
-            <a [href]="doc.fileUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-              <i class="bi bi-box-arrow-up-right me-1"></i>Open
-            </a>
+          </div>
+        </div>
+        
+        <div class="col-md-12">
+          <h6 class="fw-bold mb-3 d-flex align-items-center">
+            <i class="bi bi-paperclip me-2 text-primary"></i>Supporting Evidence
+            <span class="badge bg-light text-dark ms-2 rounded-pill small" *ngIf="!docsLoading">{{ documents.length }} Files</span>
+          </h6>
+
+          <div *ngIf="docsLoading" class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary"></div>
+          </div>
+
+          <div *ngIf="!docsLoading && documents.length === 0" class="text-center py-4 bg-light rounded-3 border-dashed">
+            <i class="bi bi-cloud-slash text-muted fs-3 d-block mb-2"></i>
+            <span class="text-muted small">No digital records found for this claim.</span>
+          </div>
+
+          <div *ngIf="!docsLoading && documents.length > 0" class="row g-3">
+            <div *ngFor="let doc of documents" class="col-sm-6">
+              <div class="card border shadow-none rounded-3 p-3 h-100 hover-elevate transition">
+                <div class="d-flex align-items-start justify-content-between">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-danger-lite text-danger sm"><i class="bi bi-file-earmark-pdf"></i></div>
+                    <div class="overflow-hidden">
+                      <div class="fw-bold small text-truncate" style="max-width:140px;">{{ doc.fileName }}</div>
+                      <div class="text-muted x-small">{{ doc.documentType }} · {{ doc.uploadedAt | date:'shortDate' }}</div>
+                    </div>
+                  </div>
+                  <a [href]="doc.fileUrl" target="_blank" class="btn btn-sm btn-light rounded-pill px-2" title="View Document">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="modal-footer border-top-0">
-        <button class="btn btn-outline-secondary" (click)="closeDetail()">Close</button>
-        <button class="btn btn-outline-info" (click)="processClaim(selectedClaim.claimId, 'review')"
-                [disabled]="selectedClaim.status === 'Approved' || selectedClaim.status === 'Rejected' || selectedClaim.status === 'Under Review' || selectedClaim.status === 'UnderReview'">
-          <i class="bi bi-eye me-1"></i>Mark Under Review
-        </button>
-        <button class="btn btn-success" (click)="processClaim(selectedClaim.claimId, 'approve')"
-                [disabled]="selectedClaim.status === 'Approved' || selectedClaim.status === 'Rejected'">
-          <i class="bi bi-check-circle me-1"></i>Approve
-        </button>
-        <button class="btn btn-danger" (click)="processClaim(selectedClaim.claimId, 'reject')"
-                [disabled]="selectedClaim.status === 'Approved' || selectedClaim.status === 'Rejected'">
-          <i class="bi bi-x-circle me-1"></i>Reject
-        </button>
-      </div>
+    <div class="modal-footer border-0 pb-4 pt-0 gap-2 px-4">
+      <button class="btn btn-light rounded-pill px-4" (click)="closeDetail()">Cancel</button>
+      <button class="btn btn-outline-info rounded-pill px-4" (click)="processClaim(selectedClaim.claimId, 'review')"
+              [disabled]="selectedClaim.status === 'Approved' || selectedClaim.status === 'Rejected' || selectedClaim.status === 'Under Review' || selectedClaim.status === 'UnderReview'">
+        Review
+      </button>
+      <button class="btn btn-success rounded-pill px-4 shadow-sm" (click)="processClaim(selectedClaim.claimId, 'approve')"
+              [disabled]="selectedClaim.status === 'Approved' || selectedClaim.status === 'Rejected'">
+        Approve
+      </button>
+      <button class="btn btn-danger rounded-pill px-4 shadow-sm" (click)="processClaim(selectedClaim.claimId, 'reject')"
+              [disabled]="selectedClaim.status === 'Approved' || selectedClaim.status === 'Rejected'">
+        Reject
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Remarks Entry Modal -->
-<div *ngIf="isRemarksOpen" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5); z-index: 1060;">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow">
-      <div class="modal-header border-bottom-0">
+<!-- Premium Remarks Modal -->
+<div *ngIf="isRemarksOpen" class="modal-glass fade-in" style="z-index: 3000;">
+  <div class="modal-glass-content" style="max-width: 500px;">
+      <div class="modal-header border-0 pb-0 px-4 pt-4">
         <h5 class="modal-title fw-bold">
-          <i class="bi bi-chat-left-text me-2 text-primary"></i>
-          {{ targetAction | titlecase }} Claim
+          <i class="bi" [ngClass]="{
+            'bi-check-circle text-success': targetAction === 'approve',
+            'bi-x-circle text-danger': targetAction === 'reject',
+            'bi-eye text-info': targetAction === 'review'
+          }"></i>
+          {{ targetAction | titlecase }} Execution
         </h5>
         <button type="button" class="btn-close" (click)="cancelProcess()" [disabled]="processing"></button>
       </div>
-      <div class="modal-body py-0">
-        <p class="text-muted small mb-3">Please provide mandatory remarks for this action. Your progress is automatically saved.</p>
-        <div class="form-floating">
-          <textarea class="form-control" placeholder="Leave a remark here" 
-                    id="claimRemarks" style="height: 150px"
+      <div class="modal-body py-4 px-4">
+        <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4">
+          <div class="d-flex gap-2">
+            <i class="bi bi-info-circle-fill"></i>
+            <div>
+              <div class="fw-bold small">Mandatory Remarks</div>
+              <div class="small">Provide justification for this decision. Draft is auto-saved locally.</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <textarea class="form-control premium-textarea shadow-sm" 
+                    placeholder="Type your official remarks here..." 
+                    id="claimRemarks"
+                    style="min-height: 120px;"
                     [(ngModel)]="remarks" (ngModelChange)="onRemarksChange()"
                     [disabled]="processing"></textarea>
-          <label for="claimRemarks">Remarks (Required)</label>
         </div>
       </div>
-      <div class="modal-footer border-top-0 gap-2">
-        <button type="button" class="btn btn-light rounded-pill px-4" (click)="cancelProcess()" [disabled]="processing">Cancel</button>
-        <button type="button" class="btn rounded-pill px-4" 
+      <div class="modal-footer border-0 pt-0 pb-4 gap-2 px-4">
+        <button type="button" class="btn btn-light rounded-pill px-4" (click)="cancelProcess()" [disabled]="processing">Abort</button>
+        <button type="button" class="btn rounded-pill px-4 shadow-sm fw-bold" 
                 [ngClass]="{
                   'btn-success': targetAction === 'approve',
                   'btn-danger': targetAction === 'reject',
@@ -203,9 +275,8 @@
                 }"
                 (click)="confirmProcess()" [disabled]="processing || !remarks.trim()">
           <span *ngIf="processing" class="spinner-border spinner-border-sm me-2"></span>
-          {{ processing ? 'Processing...' : 'Confirm ' + (targetAction | titlecase) }}
+          {{ processing ? 'Executing...' : 'Proceed with ' + (targetAction | titlecase) }}
         </button>
       </div>
-    </div>
   </div>
 </div>

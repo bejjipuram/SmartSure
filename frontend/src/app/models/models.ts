@@ -88,6 +88,7 @@ export interface AdminClaim {
   claimNumber: string;
   claimAmount: number;
   status: string;
+  description: string;
   incidentDate: string;
   createdAt: string;
 }

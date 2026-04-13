@@ -13,98 +13,116 @@ import { DashboardData, Policy, Claim, AdminDashboardData, AuditLog } from '../.
   standalone: true,
   imports: [CommonModule, RouterLink, BaseChartDirective],
   template: `
-    <div *ngIf="loading" class="loading-spinner">
-      <div class="spinner-border text-primary" style="width:2.5rem;height:2.5rem;"></div>
-    </div>
-
-    <div *ngIf="!loading">
+    <div *ngIf="!loading" class="fade-in">
       
       <!-- ADMIN VIEW -->
       <div *ngIf="isAdmin && adminData">
-        <h4 class="mb-4 fw-bold">System Administration</h4>
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <h4 class="fw-bold text-dark m-0">System Overview</h4>
+          <span class="badge bg-primary-lite rounded-pill">Admin Dashboard</span>
+        </div>
         
         <!-- Row 1: Key metrics -->
-        <div class="row g-3 mb-3">
+        <div class="row g-4 mb-4">
           <div class="col-sm-4">
-            <div class="stat-card">
-              <div class="stat-icon bg-blue-lite"><i class="bi bi-people text-primary"></i></div>
-              <div><div class="stat-label">Active Users</div><div class="stat-value">{{ adminData.activeUsers }}</div></div>
+            <div class="card border-0 shadow-sm p-4">
+              <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-primary-lite text-primary"><i class="bi bi-people"></i></div>
+                <div>
+                  <div class="text-muted small fw-bold text-uppercase ls-wide">Active Users</div>
+                  <div class="h3 fw-bold m-0">{{ adminData.activeUsers }}</div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="col-sm-4">
-            <div class="stat-card">
-              <div class="stat-icon bg-green-lite"><i class="bi bi-cash-stack text-success"></i></div>
-              <div><div class="stat-label">Total Revenue</div><div class="stat-value">₹{{ adminData.totalRevenue | number:'1.2-2' }}</div></div>
+            <div class="card border-0 shadow-sm p-4">
+              <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-success-lite text-success"><i class="bi bi-cash-stack"></i></div>
+                <div>
+                  <div class="text-muted small fw-bold text-uppercase ls-wide">Total Revenue</div>
+                  <div class="h3 fw-bold m-0">₹{{ adminData.totalRevenue | number:'1.2-2' }}</div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="col-sm-4">
-            <div class="stat-card">
-              <div class="stat-icon bg-orange-lite"><i class="bi bi-hourglass-split text-warning"></i></div>
-              <div><div class="stat-label">Pending Claims</div><div class="stat-value">{{ adminData.pendingClaims }}</div></div>
-            </div>
-          </div>
-        </div>
-        <!-- Row 2: Secondary metrics -->
-        <div class="row g-3 mb-4">
-          <div class="col-sm-4">
-            <div class="stat-card">
-              <div class="stat-icon" style="background:rgba(16,185,129,0.1)"><i class="bi bi-check-circle text-success"></i></div>
-              <div><div class="stat-label">Approved Claims</div><div class="stat-value">{{ adminData.approvedClaims }}</div></div>
-            </div>
-          </div>
-          <div class="col-sm-4">
-            <div class="stat-card">
-              <div class="stat-icon" style="background:rgba(99,102,241,0.1)"><i class="bi bi-file-earmark-diff" style="color:#6366f1"></i></div>
-              <div><div class="stat-label">Total Claims</div><div class="stat-value">{{ adminData.totalClaims }}</div></div>
-            </div>
-          </div>
-          <div class="col-sm-4">
-            <div class="stat-card">
-              <div class="stat-icon" style="background:rgba(139,92,246,0.1)"><i class="bi bi-shield-check" style="color:#7c3aed"></i></div>
-              <div><div class="stat-label">Total Policies</div><div class="stat-value">{{ adminData.totalPolicies }}</div></div>
+            <div class="card border-0 shadow-sm p-4">
+              <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-warning-lite text-warning"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                  <div class="text-muted small fw-bold text-uppercase ls-wide">Pending Claims</div>
+                  <div class="h3 fw-bold m-0">{{ adminData.pendingClaims }}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="row g-4">
            <div class="col-xl-8">
-              <div class="table-container">
-                <div class="px-3 py-3 border-bottom"><h6 class="mb-0 fw-semibold">Recent Audit Logs</h6></div>
-                <div class="table-responsive">
-                  <table class="table table-hover mb-0 small">
-                    <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead>
-                    <tbody>
-                      <tr *ngFor="let log of auditLogs">
-                        <td class="text-muted">{{ log.timestamp | date:'short':locale.timezone:locale.locale }}</td>
-                        <td>{{ log.userName || 'System' }}</td>
-                        <td><span class="badge bg-light text-dark border">{{ log.action }}</span></td>
-                        <td>{{ log.entityName }}</td>
-                        <td class="text-truncate" style="max-width:200px;">{{ log.details }}</td>
-                      </tr>
-                      <tr *ngIf="auditLogs.length === 0">
-                        <td colspan="5" class="text-center text-muted py-4">No audit logs yet.</td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <div class="card border-0 shadow-sm">
+                <div class="card-header border-bottom-0 pt-4 px-4 bg-transparent d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0 fw-bold">Recent Audit Activity</h6>
+                  <a routerLink="/admin/audit-logs" class="btn btn-sm btn-outline-secondary rounded-pill px-3">View More</a>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                      <thead>
+                        <tr>
+                          <th class="ps-4">Timestamp</th>
+                          <th>User</th>
+                          <th>Action</th>
+                          <th>Entity</th>
+                          <th class="pe-4">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody class="small">
+                        <tr *ngFor="let log of auditLogs">
+                          <td class="ps-4 text-muted">{{ log.timestamp | date:'shortTime' }}</td>
+                          <td class="fw-semibold">{{ log.userName || 'System' }}</td>
+                          <td>
+                            <span class="badge rounded-pill" 
+                              [ngClass]="{
+                                'badge-approved': log.action.includes('Create') || log.action.includes('Approved'),
+                                'badge-pending': log.action.includes('Update') || log.action.includes('Modified'),
+                                'badge-rejected': log.action.includes('Delete') || log.action.includes('Rejected'),
+                                'badge-in-review': !log.action.includes('Create') && !log.action.includes('Update') && !log.action.includes('Delete')
+                              }">
+                              {{ log.action }}
+                            </span>
+                          </td>
+                          <td>{{ log.entityName }}</td>
+                          <td class="pe-4 text-truncate" style="max-width:180px;">{{ log.details }}</td>
+                        </tr>
+                        <tr *ngIf="auditLogs.length === 0">
+                          <td colspan="5" class="text-center text-muted py-5 italic">No recent system activity.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
            </div>
            <div class="col-xl-4">
-              <div class="table-container p-3">
-                <h6 class="fw-semibold mb-3">Quick Actions</h6>
-                <div class="d-grid gap-2">
-                  <a routerLink="/admin/claims" class="btn btn-outline-warning btn-sm text-start">
-                    <i class="bi bi-hourglass-split me-2"></i>Review Pending Claims
-                    <span class="badge bg-warning text-dark ms-1">{{ adminData.pendingClaims }}</span>
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-header border-bottom-0 pt-4 px-4 bg-transparent">
+                  <h6 class="fw-bold mb-0">Quick Management</h6>
+                </div>
+                <div class="card-body px-4 pb-4 pt-2 d-grid gap-2">
+                  <a routerLink="/admin/claims" class="btn btn-warning bg-warning-lite border-0 text-warning d-flex align-items-center justify-content-between px-3 py-3">
+                    <span class="fw-bold"><i class="bi bi-shield-exclamation me-2"></i>Pending Claims</span>
+                    <span class="badge bg-warning text-white rounded-pill px-2">{{ adminData.pendingClaims }}</span>
                   </a>
-                  <a routerLink="/admin/users" class="btn btn-outline-primary btn-sm text-start">
-                    <i class="bi bi-people me-2"></i>Manage Users
+                  <a routerLink="/admin/users" class="btn btn-primary bg-primary-lite border-0 text-primary d-flex align-items-center px-3 py-3">
+                    <span class="fw-bold"><i class="bi bi-people me-2"></i>User Management</span>
                   </a>
-                  <a routerLink="/admin/policies" class="btn btn-outline-secondary btn-sm text-start">
-                    <i class="bi bi-file-earmark-text me-2"></i>View All Policies
+                  <a routerLink="/admin/policies" class="btn btn-info bg-primary-lite border-0 text-info d-flex align-items-center px-3 py-3">
+                    <span class="fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Policy Archives</span>
                   </a>
-                  <a routerLink="/admin/insurance" class="btn btn-outline-success btn-sm text-start">
-                    <i class="bi bi-shield-plus me-2"></i>Insurance Catalog
+                  <a routerLink="/admin/insurance" class="btn btn-success bg-success-lite border-0 text-success d-flex align-items-center px-3 py-3">
+                    <span class="fw-bold"><i class="bi bi-plus-circle me-2"></i>Insurance Products</span>
                   </a>
                 </div>
               </div>
@@ -114,87 +132,101 @@ import { DashboardData, Policy, Claim, AdminDashboardData, AuditLog } from '../.
 
       <!-- CUSTOMER VIEW -->
       <div *ngIf="!isAdmin && data">
-        <div class="row g-3 mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+           <h4 class="fw-bold text-dark m-0">My Dashboard</h4>
+           <div class="d-flex gap-2">
+              <a routerLink="/new-policy" class="btn btn-primary btn-sm rounded-pill px-3">New Policy</a>
+              <a routerLink="/claims/initiate" class="btn btn-outline-primary btn-sm rounded-pill px-3">File Claim</a>
+           </div>
+        </div>
+
+        <div class="row g-4 mb-4">
           <div class="col-6 col-xl-3">
-            <div class="stat-card">
-              <div class="stat-icon" style="background:#eff6ff;">
-                <i class="bi bi-shield-check" style="color:#1a56db;font-size:1.3rem;"></i>
-              </div>
-              <div>
-                <div class="stat-label">Active Policies</div>
-                <div class="stat-value">{{ data.activePolicies }}</div>
+            <div class="card border-0 shadow-sm p-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-primary-lite text-primary"><i class="bi bi-shield-check"></i></div>
+                <div>
+                  <div class="text-muted small fw-bold">Policies</div>
+                  <div class="h4 fw-bold m-0">{{ data.activePolicies }}</div>
+                </div>
               </div>
             </div>
           </div>
           <div class="col-6 col-xl-3">
-            <div class="stat-card">
-              <div class="stat-icon" style="background:#f0fdf4;">
-                <i class="bi bi-graph-up-arrow" style="color:#0d9488;font-size:1.3rem;"></i>
-              </div>
-              <div>
-                <div class="stat-label">Total Premium</div>
-                <div class="stat-value">₹{{ data.totalPremium | number:'1.2-2' }}</div>
-              </div>
-            </div>
-          </div>
-          <div class="col-6 col-xl-3">
-            <div class="stat-card">
-              <div class="stat-icon" style="background:#fffbeb;">
-                <i class="bi bi-exclamation-circle" style="color:#d97706;font-size:1.3rem;"></i>
-              </div>
-              <div>
-                <div class="stat-label">Pending Claims</div>
-                <div class="stat-value">{{ data.pendingClaims }}</div>
+            <div class="card border-0 shadow-sm p-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-success-lite text-success"><i class="bi bi-graph-up-arrow"></i></div>
+                <div>
+                  <div class="text-muted small fw-bold">Premium</div>
+                  <div class="h4 fw-bold m-0">₹{{ data.totalPremium | number:'1.2-2' }}</div>
+                </div>
               </div>
             </div>
           </div>
           <div class="col-6 col-xl-3">
-            <div class="stat-card">
-              <div class="stat-icon" style="background:#f5f3ff;">
-                <i class="bi bi-file-earmark-text" style="color:#7c3aed;font-size:1.3rem;"></i>
+            <div class="card border-0 shadow-sm p-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-warning-lite text-warning"><i class="bi bi-exclamation-circle"></i></div>
+                <div>
+                  <div class="text-muted small fw-bold">Pending</div>
+                  <div class="h4 fw-bold m-0">{{ data.pendingClaims }}</div>
+                </div>
               </div>
-              <div>
-                <div class="stat-label">Total Claims</div>
-                <div class="stat-value">{{ data.totalClaims }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-xl-3">
+            <div class="card border-0 shadow-sm p-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-info text-white"><i class="bi bi-file-earmark-text"></i></div>
+                <div>
+                  <div class="text-muted small fw-bold">Total Claims</div>
+                  <div class="h4 fw-bold m-0">{{ data.totalClaims }}</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Charts and tables stay here as in existing UI -->
-        <div class="row g-3 mb-4">
+        <div class="row g-4 mb-4">
           <div class="col-md-6">
-            <div class="chart-card">
-              <h6><i class="bi bi-pie-chart me-2 text-primary"></i>Policies by Status</h6>
-              <div style="max-height:220px;position:relative;">
+            <div class="card border-0 shadow-sm p-4">
+              <h6 class="fw-bold mb-4">Policies by Type</h6>
+              <div style="height:250px;">
                 <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie"></canvas>
               </div>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="chart-card">
-              <h6><i class="bi bi-bar-chart me-2 text-primary"></i>Claims by Status</h6>
-              <div style="max-height:220px;position:relative;">
+            <div class="card border-0 shadow-sm p-4">
+              <h6 class="fw-bold mb-4">Claim Status Summary</h6>
+              <div style="height:250px;">
                 <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar"></canvas>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="table-container mb-4">
-          <div class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
-            <h6 class="mb-0 fw-semibold">Recent Claims</h6>
-            <a routerLink="/claims" class="small text-primary fw-medium text-decoration-none">View all</a>
+        <div class="card border-0 shadow-sm overflow-hidden">
+          <div class="card-header border-bottom-0 p-4 bg-transparent d-flex align-items-center justify-content-between">
+            <h6 class="mb-0 fw-bold">Recent Claim Activity</h6>
+            <a routerLink="/claims" class="text-primary small fw-bold text-decoration-none">View All Activity</a>
           </div>
           <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead><tr><th>Claim #</th><th>Description</th><th>Status</th><th class="text-end">Amount</th></tr></thead>
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="ps-4">Reference</th>
+                  <th>Incident Details</th>
+                  <th>Status</th>
+                  <th class="text-end pe-4">Value</th>
+                </tr>
+              </thead>
               <tbody>
                 <tr *ngFor="let c of data.recentClaims">
-                  <td><code class="small">{{ c.claimNumber || 'CLM-' + c.id }}</code></td>
-                  <td>{{ c.description }}</td>
-                  <td><span [class]="'badge rounded-pill ' + claimBadgeClass(c.status)">{{ c.status }}</span></td>
-                  <td class="text-end fw-medium">₹{{ c.claimAmount | number:'1.2-2' }}</td>
+                  <td class="ps-4"><code class="fw-bold text-primary">{{ c.claimNumber || 'CLM-' + c.id }}</code></td>
+                  <td class="small">{{ c.description }}</td>
+                  <td><span class="badge rounded-pill" [ngClass]="claimBadgeClass(c.status)">{{ c.status }}</span></td>
+                  <td class="text-end pe-4 fw-bold">₹{{ c.claimAmount | number:'1.2-2' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -204,9 +236,17 @@ import { DashboardData, Policy, Claim, AdminDashboardData, AuditLog } from '../.
     </div>
   `,
   styles: [`
-    .bg-blue-lite { background: rgba(37, 99, 235, 0.1); }
-    .bg-green-lite { background: rgba(16, 185, 129, 0.1); }
-    .bg-orange-lite { background: rgba(245, 158, 11, 0.1); }
+    .ls-wide { letter-spacing: 0.05em; }
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+    .text-danger-hover:hover { color: var(--danger) !important; background: rgba(239, 68, 68, 0.05) !important; }
   `]
 })
 export class DashboardComponent implements OnInit {

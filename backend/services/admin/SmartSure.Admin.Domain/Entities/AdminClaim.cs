@@ -12,5 +12,6 @@ public class AdminClaim : BaseEntity
     public string ClaimNumber { get; set; } = string.Empty;
     public decimal ClaimAmount { get; set; }
     public string Status { get; set; } = string.Empty; // Initiated, Submitted, Under Review, Approved, Rejected, Cancelled
+    public string Description { get; set; } = string.Empty;
     public DateTime IncidentDate { get; set; }
 }

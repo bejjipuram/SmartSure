@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PolicyService } from '../../services/policy.service';
@@ -10,164 +10,189 @@ import { Policy } from '../../models/models';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <!-- Filters -->
-    <div class="d-flex flex-wrap gap-2 mb-4">
-      <div class="input-group" style="max-width:320px;">
-        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-        <input type="text" class="form-control border-start-0" placeholder="Search by policy # or vehicle..."
-               [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()">
+    <div class="fade-in">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h4 class="fw-bold text-dark m-0">My Protection Portfolio</h4>
+          <p class="text-muted small mb-0">Overview of your active and historical insurance contracts</p>
+        </div>
+        <div class="d-flex gap-3">
+          <div class="search-container">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" 
+                   class="form-control search-input" 
+                   placeholder="Search policy identifier..." 
+                   [(ngModel)]="searchTerm" 
+                   (ngModelChange)="applyFilters()">
+          </div>
+          <select class="form-select status-select shadow-sm" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+            <option value="All">All Status</option>
+            <option value="Active">Active Only</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Expired">Expired</option>
+          </select>
+        </div>
       </div>
-      <select class="form-select" style="max-width:160px;" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
-        <option value="All">All Status</option>
-        <option value="Active">Active</option>
-        <option value="Cancelled">Cancelled</option>
-      </select>
-    </div>
 
-    <div *ngIf="loading" class="loading-spinner">
-      <div class="spinner-border text-primary"></div>
-    </div>
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border spinner-border-sm text-primary"></div>
+        <div class="mt-2 text-muted small">Accessing secure policy vault...</div>
+      </div>
 
-    <div *ngIf="error" class="alert alert-warning small">
-      <i class="bi bi-info-circle me-2"></i>{{ error }}
-    </div>
+      <div *ngIf="error && policies.length === 0" class="alert badge-pending border-0 shadow-sm py-3 mb-4">
+        <i class="bi bi-info-circle-fill me-2"></i>{{ error }}
+      </div>
 
-    <div *ngIf="!loading && filtered.length === 0" class="empty-state">
-      <i class="bi bi-file-earmark-x text-muted"></i>
-      <p class="mt-2 fw-medium text-muted">No policies found</p>
-      <p class="small text-muted">Try adjusting your filters or purchase a new policy.</p>
-    </div>
+      <div *ngIf="!loading && filtered.length === 0" class="text-center py-5 slide-up">
+        <div class="stat-icon bg-light text-muted mx-auto mb-3" style="width:64px; height:64px; border-radius: 20px;">
+          <i class="bi bi-shield-slash fs-2"></i>
+        </div>
+        <h5 class="fw-bold text-dark">No Policies Detected</h5>
+        <p class="text-muted small">We couldn't find any policies matching your criteria.</p>
+      </div>
 
-    <div class="row g-3">
-      <div class="col-sm-6 col-xl-4" *ngFor="let p of filtered">
-        <div class="policy-card h-100" style="cursor:pointer;" (click)="viewDetail(p.id)">
-          <div class="d-flex align-items-start justify-content-between mb-3">
-            <div class="d-flex align-items-center gap-2">
-              <div class="d-flex align-items-center justify-content-center rounded-3"
-                   style="width:40px;height:40px;background:#eff6ff;">
-                <i [class]="'bi fs-5 ' + typeIcon(p.subType?.insuranceTypeId)" style="color:#1a56db;"></i>
+      <div class="row g-4 slide-up">
+        <div class="col-sm-6 col-xl-4" *ngFor="let p of filtered">
+          <div class="card border-0 shadow-sm h-100 policy-vault-card transition" (click)="viewDetail(p.id)">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="stat-icon bg-primary-lite text-primary sm rounded-circle">
+                    <i [class]="'bi ' + typeIcon(p.subType?.insuranceTypeId)"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold text-dark">{{ p.subType?.name || 'Standard Cover' }}</div>
+                    <code class="text-primary x-small fw-bold">{{ p.policyNumber || 'POL-SECURE' }}</code>
+                  </div>
+                </div>
+                <span class="badge rounded-pill" [ngClass]="badgeClass(p.status)">{{ p.status }}</span>
               </div>
-              <div>
-                <div class="fw-semibold" style="font-size:0.875rem;">{{ p.subType?.name || 'Policy' }}</div>
-                <code class="text-muted" style="font-size:0.75rem;">{{ p.policyNumber || 'POL-' + p.id.slice(0,8) }}</code>
+
+              <div class="asset-context mb-4 p-3 bg-light-soft rounded-3 border">
+                 <ng-container *ngIf="p.vehicleDetails">
+                   <div class="text-muted x-small fw-bold text-uppercase ls-wide mb-1">Protected Asset</div>
+                   <div class="fw-bold text-dark small truncate-text">{{ p.vehicleDetails.year }} {{ p.vehicleDetails.make }} {{ p.vehicleDetails.model }}</div>
+                   <div class="text-primary x-small fw-mono mt-1">{{ p.vehicleDetails.licensePlate }}</div>
+                 </ng-container>
+                 <ng-container *ngIf="p.homeDetails">
+                   <div class="text-muted x-small fw-bold text-uppercase ls-wide mb-1">Insured Location</div>
+                   <div class="fw-bold text-dark small text-truncate">{{ p.homeDetails.propertyAddress }}</div>
+                 </ng-container>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mb-0 mt-2">
+                 <div>
+                    <div class="text-muted x-small fw-bold">ANNUALIZED PREMIUM</div>
+                    <div class="fw-bold text-dark">₹{{ p.premiumAmount | number:'1.2-2' }}</div>
+                 </div>
+                 <div class="text-end">
+                    <div class="text-muted x-small fw-bold">TERM LOGS</div>
+                    <div class="x-small fw-bold text-muted">{{ p.endDate | date:'MMM y' }}</div>
+                 </div>
+              </div>
+              
+              <div class="mt-4 pt-3 border-top d-flex align-items-center justify-content-center text-primary x-small fw-bold gap-2">
+                 <i class="bi bi-qr-code"></i> VIEW DIGITAL CERTIFICATE
               </div>
             </div>
-            <span [class]="'badge rounded-pill ' + badgeClass(p.status)">{{ p.status }}</span>
-          </div>
-
-          <div *ngIf="p.vehicleDetails" class="mb-2">
-            <small class="text-muted d-block">Vehicle</small>
-            <span class="fw-medium small">{{ p.vehicleDetails.year }} {{ p.vehicleDetails.make }} {{ p.vehicleDetails.model }}</span>
-            <span class="text-muted small ms-2">({{ p.vehicleDetails.licensePlate }})</span>
-          </div>
-
-          <div *ngIf="p.homeDetails" class="mb-2">
-            <small class="text-muted d-block">Property Address</small>
-            <span class="fw-medium small">{{ p.homeDetails.propertyAddress }}</span>
-          </div>
-
-          <div class="row g-2 mt-1">
-            <div class="col-12">
-              <div class="p-2 rounded-2" style="background:#f8fafc;">
-                <small class="text-muted d-block">Annual Premium</small>
-                <span class="fw-bold text-primary">₹{{ p.premiumAmount | number:'1.2-2' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-between mt-3 pt-2" style="border-top:1px solid #f1f5f9;">
-            <div>
-              <small class="text-muted d-block">Start</small>
-              <small class="fw-medium">{{ p.startDate | date:'MMM d, y':locale.timezone:locale.locale }}</small>
-            </div>
-            <div class="text-end">
-              <small class="text-muted d-block">End</small>
-              <small class="fw-medium">{{ p.endDate | date:'MMM d, y':locale.timezone:locale.locale }}</small>
-            </div>
-          </div>
-
-          <div class="mt-3 text-center">
-            <span class="text-primary small"><i class="bi bi-eye me-1"></i>View Details</span>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Policy Detail Modal -->
-    <div *ngIf="selectedPolicy" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.45);">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4 border-0">
-          <div class="modal-header border-0 pb-0">
-            <div>
-              <h5 class="modal-title fw-bold mb-0">Policy Details</h5>
-              <code class="text-muted small">{{ selectedPolicy.policyNumber }}</code>
-            </div>
-            <button class="btn-close" (click)="selectedPolicy = null"></button>
-          </div>
-          <div class="modal-body pt-2">
-            <div *ngIf="detailLoading" class="text-center py-4">
-              <div class="spinner-border text-primary"></div>
-            </div>
-            <div *ngIf="!detailLoading">
-              <div class="d-flex gap-2 mb-4">
-                <span [class]="'badge rounded-pill fs-6 ' + badgeClass(selectedPolicy.status)">{{ selectedPolicy.status }}</span>
-                <span class="badge bg-light text-dark fs-6">{{ selectedPolicy.subType?.name }}</span>
-              </div>
-              <div class="row g-3 mb-4">
-                <div class="col-6 col-md-3">
-                  <div class="p-3 bg-light rounded-3 text-center">
-                    <small class="text-muted d-block">Annual Premium</small>
-                    <span class="fw-bold text-primary">₹{{ selectedPolicy.premiumAmount | number:'1.2-2' }}</span>
-                  </div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div class="p-3 bg-light rounded-3 text-center">
-                    <small class="text-muted d-block">{{ selectedPolicy.subType?.insuranceTypeId === 1 ? 'IDV' : 'Sum Insured' }}</small>
-                    <span class="fw-bold text-success">₹{{ selectedPolicy.insuredDeclaredValue | number:'1.2-2' }}</span>
-                  </div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div class="p-3 bg-light rounded-3 text-center">
-                    <small class="text-muted d-block">Start Date</small>
-                    <span class="fw-semibold small">{{ selectedPolicy.startDate | date:'MMM d, y':locale.timezone:locale.locale }}</span>
-                  </div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div class="p-3 bg-light rounded-3 text-center">
-                    <small class="text-muted d-block">End Date</small>
-                    <span class="fw-semibold small">{{ selectedPolicy.endDate | date:'MMM d, y':locale.timezone:locale.locale }}</span>
-                  </div>
+      <!-- Policy Detail Modal -->
+      <div *ngIf="selectedPolicy" class="modal-glass fade-in" (click)="selectedPolicy = null">
+        <div class="modal-glass-content" (click)="$event.stopPropagation()" style="max-width: 800px;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-shield-check fs-4 text-primary"></i>
+                <div>
+                  <h5 class="modal-title fw-bold m-0">Policy Specification</h5>
+                  <code class="text-muted x-small">{{ selectedPolicy.policyNumber }}</code>
                 </div>
               </div>
+              <button class="btn-close" (click)="selectedPolicy = null"></button>
+            </div>
+            <div class="modal-body p-4 pt-2">
+              <div *ngIf="detailLoading" class="text-center py-5">
+                <div class="spinner-border text-primary"></div>
+              </div>
+              <div *ngIf="!detailLoading">
+                <div class="d-flex gap-2 mb-4">
+                  <span class="badge rounded-pill px-3 py-2" [ngClass]="badgeClass(selectedPolicy.status)">{{ selectedPolicy.status }}</span>
+                  <span class="badge bg-light-soft text-primary rounded-pill px-3 py-2 border">{{ selectedPolicy.subType?.name }}</span>
+                </div>
+                
+                <div class="row g-3 mb-5">
+                  <div class="col-md-3 col-6">
+                    <div class="metric-mini p-3 bg-light-soft rounded-4 text-center border">
+                      <div class="text-muted x-small fw-bold text-uppercase ls-wide mb-1">Premium</div>
+                      <div class="fw-bold text-primary">₹{{ selectedPolicy.premiumAmount | number:'1.2-2' }}</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 col-6">
+                    <div class="metric-mini p-3 bg-light-soft rounded-4 text-center border">
+                      <div class="text-muted x-small fw-bold text-uppercase ls-wide mb-1">Coverage</div>
+                      <div class="fw-bold text-success">₹{{ selectedPolicy.insuredDeclaredValue | number:'1.2-2' }}</div>
+                    </div>
+                  </div>
+                   <div class="col-md-3 col-6">
+                    <div class="metric-mini p-3 bg-light-soft rounded-4 text-center border">
+                      <div class="text-muted x-small fw-bold text-uppercase ls-wide mb-1">Inception</div>
+                      <div class="fw-bold text-dark small">{{ selectedPolicy.startDate | date:'mediumDate' }}</div>
+                    </div>
+                  </div>
+                   <div class="col-md-3 col-6">
+                    <div class="metric-mini p-3 bg-light-soft rounded-4 text-center border">
+                      <div class="text-muted x-small fw-bold text-uppercase ls-wide mb-1">Expiration</div>
+                      <div class="fw-bold text-danger small">{{ selectedPolicy.endDate | date:'mediumDate' }}</div>
+                    </div>
+                  </div>
+                </div>
 
-              <div *ngIf="selectedPolicy.vehicleDetails" class="mb-3">
-                <h6 class="fw-semibold mb-2"><i class="bi bi-car-front me-2 text-primary"></i>Vehicle Details</h6>
-                <div class="row g-2">
-                  <div class="col-6"><small class="text-muted d-block">Make</small><span class="fw-medium">{{ selectedPolicy.vehicleDetails.make }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">Model</small><span class="fw-medium">{{ selectedPolicy.vehicleDetails.model }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">Year</small><span class="fw-medium">{{ selectedPolicy.vehicleDetails.year }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">License Plate</small><span class="fw-medium">{{ selectedPolicy.vehicleDetails.licensePlate }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">VIN</small><span class="fw-medium">{{ selectedPolicy.vehicleDetails.vin || '&#8212;' }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">Annual Mileage</small><span class="fw-medium">{{ selectedPolicy.vehicleDetails.annualMileage | number }} km</span></div>
+                <div class="specification-grid" *ngIf="selectedPolicy.vehicleDetails">
+                  <h6 class="fw-bold text-dark mb-3"><i class="bi bi-car-front-fill me-2 text-primary"></i>Protected Vehicle Registry</h6>
+                  <div class="card border-0 bg-light-soft rounded-4 p-4">
+                    <div class="row g-4">
+                      <div class="col-md-4 col-6">
+                        <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Manufacturer</label>
+                        <span class="fw-bold text-dark">{{ selectedPolicy.vehicleDetails.make }}</span>
+                      </div>
+                      <div class="col-md-4 col-6">
+                        <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Model Range</label>
+                        <span class="fw-bold text-dark">{{ selectedPolicy.vehicleDetails.model }}</span>
+                      </div>
+                      <div class="col-md-4 col-6">
+                        <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Plate Number</label>
+                        <span class="fw-mono text-primary fw-bold">{{ selectedPolicy.vehicleDetails.licensePlate }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div *ngIf="selectedPolicy.homeDetails" class="mb-3">
-                <h6 class="fw-semibold mb-2"><i class="bi bi-house me-2 text-primary"></i>Property Details</h6>
-                <div class="row g-2">
-                  <div class="col-12"><small class="text-muted d-block">Address</small><span class="fw-medium">{{ selectedPolicy.homeDetails.propertyAddress }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">Property Value</small><span class="fw-medium">₹{{ selectedPolicy.homeDetails.propertyValue | number:'1.2-2' }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">Year Built</small><span class="fw-medium">{{ selectedPolicy.homeDetails.yearBuilt }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">Construction Type</small><span class="fw-medium">{{ selectedPolicy.homeDetails.constructionType }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">Security System</small><span class="fw-medium">{{ selectedPolicy.homeDetails.hasSecuritySystem ? 'Yes' : 'No' }}</span></div>
-                  <div class="col-6"><small class="text-muted d-block">Fire Alarm</small><span class="fw-medium">{{ selectedPolicy.homeDetails.hasFireAlarm ? 'Yes' : 'No' }}</span></div>
+                <div class="specification-grid" *ngIf="selectedPolicy.homeDetails">
+                  <h6 class="fw-bold text-dark mb-3"><i class="bi bi-house-fill me-2 text-primary"></i>Real Estate Portfolio Asset</h6>
+                  <div class="card border-0 bg-light-soft rounded-4 p-4">
+                    <div class="row g-4">
+                      <div class="col-12">
+                        <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Deeded Location</label>
+                        <span class="fw-bold text-dark">{{ selectedPolicy.homeDetails.propertyAddress }}</span>
+                      </div>
+                      <div class="col-md-6 col-6">
+                        <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Market Valuation</label>
+                        <span class="fw-bold text-dark">₹{{ selectedPolicy.homeDetails.propertyValue | number:'1.2-2' }}</span>
+                      </div>
+                      <div class="col-md-6 col-6">
+                        <label class="x-small text-muted fw-bold text-uppercase ls-wide d-block">Architecture Year</label>
+                        <span class="fw-bold text-dark">{{ selectedPolicy.homeDetails.yearBuilt }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="modal-footer border-0">
-            <button class="btn btn-outline-secondary rounded-pill" (click)="selectedPolicy = null">Close</button>
-          </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+              <button class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="selectedPolicy = null">Close Specification</button>
+            </div>
         </div>
       </div>
     </div>

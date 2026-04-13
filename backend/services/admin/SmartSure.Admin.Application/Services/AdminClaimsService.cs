@@ -115,6 +115,7 @@ public class AdminClaimsService : IAdminClaimsService
         ClaimNumber = claim.ClaimNumber,
         ClaimAmount = claim.ClaimAmount,
         Status = claim.Status,
+        Description = claim.Description,
         IncidentDate = claim.IncidentDate,
         CreatedAt = claim.CreatedAt
     };

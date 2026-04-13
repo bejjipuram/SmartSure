@@ -53,131 +53,149 @@ const REPORT_TYPES = [
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="mb-4">
-      <h5 class="fw-bold mb-0">Reports</h5>
-      <p class="text-muted small mb-0">Select a report type, then click Generate to create and download the PDF</p>
-    </div>
+    <div class="fade-in">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h4 class="fw-bold text-dark m-0">Reports & Analytics</h4>
+          <p class="text-muted small mb-0">Generate comprehensive PDF summaries and data snapshots</p>
+        </div>
+      </div>
 
-    <!-- Step 1 — Select report type -->
-    <div class="row g-3 mb-4">
-      <div class="col-sm-6 col-xl-3" *ngFor="let t of reportTypes">
-        <div class="stat-card h-100"
-             style="cursor:pointer; transition: box-shadow .15s;"
-             [class.selected-card]="selected?.type === t.type"
-             (click)="selectType(t)">
-          <div class="stat-icon" [ngClass]="t.bg">
-            <i class="bi" [ngClass]="[t.icon, t.color]"></i>
-          </div>
-          <div class="flex-grow-1">
-            <div class="fw-semibold small">{{ t.label }}</div>
-            <div class="text-muted" style="font-size:0.75rem;">{{ t.description }}</div>
-          </div>
-          <div class="mt-2">
-            <span *ngIf="selected?.type !== t.type"
-                  class="badge bg-light text-secondary border small">Click to select</span>
-            <span *ngIf="selected?.type === t.type"
-                  class="badge bg-primary text-white small">
-              <i class="bi bi-check2 me-1"></i>Selected
-            </span>
+      <!-- Select report type -->
+      <div class="row g-4 mb-5">
+        <div class="col-sm-6 col-xl-3" *ngFor="let t of reportTypes">
+          <div class="card border-0 shadow-sm h-100 hover-elevate transition"
+               style="cursor:pointer;"
+               [class.border-primary-glow]="selected?.type === t.type"
+               (click)="selectType(t)">
+            <div class="card-body p-4">
+              <div class="stat-icon mb-3" [ngClass]="t.bg">
+                <i class="bi" [ngClass]="[t.icon, t.color]"></i>
+              </div>
+              <h6 class="fw-bold text-dark mb-2">{{ t.label }}</h6>
+              <p class="text-muted x-small mb-3 line-height-sm">{{ t.description }}</p>
+              
+              <div class="d-flex align-items-center justify-content-between mt-auto">
+                <span *ngIf="selected?.type !== t.type" class="text-primary x-small fw-bold">Select Template</span>
+                <span *ngIf="selected?.type === t.type" class="badge bg-primary text-white rounded-pill px-3">
+                  <i class="bi bi-check2 me-1"></i>Active Selection
+                </span>
+                <i class="bi bi-chevron-right text-muted small" *ngIf="selected?.type !== t.type"></i>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Step 2 — Configure & Generate -->
-    <div class="table-container mb-4" *ngIf="selected">
-      <div class="px-4 py-3 border-bottom">
-        <h6 class="mb-0 fw-semibold">
-          <i class="bi me-2" [ngClass]="selected.icon"></i>{{ selected.label }}
-        </h6>
-      </div>
-      <div class="p-4">
-        <div class="row g-3 align-items-end">
-          <div class="col-md-6">
-            <label class="form-label small fw-medium">Report Title <span class="text-muted">(optional)</span></label>
-            <input class="form-control form-control-sm"
-                   [(ngModel)]="customTitle"
-                   [placeholder]="selected.label + ' — ' + today">
+      <!-- Configure & Generate -->
+      <div class="card border-0 shadow-lg mb-5 overflow-hidden slide-up" *ngIf="selected">
+        <div class="card-header bg-primary py-3 px-4 d-flex align-items-center justify-content-between border-0">
+          <h6 class="mb-0 fw-bold text-white d-flex align-items-center">
+            <i class="bi me-2 fs-5" [ngClass]="selected.icon"></i>
+            Generating: {{ selected.label }}
+          </h6>
+          <button class="btn btn-sm btn-white border-0 shadow-sm rounded-pill px-3" (click)="selected = null">
+            Cancel Context
+          </button>
+        </div>
+        <div class="card-body p-4 bg-light-soft">
+          <div class="row g-4 align-items-end">
+            <div class="col-md-7">
+              <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Official Report Designation</label>
+              <input class="form-control premium-input shadow-sm"
+                     [(ngModel)]="customTitle"
+                     [placeholder]="selected.label + ' — ' + today">
+            </div>
+            <div class="col-md-5 d-flex gap-2">
+              <button class="btn btn-primary rounded-pill px-4 flex-grow-1 shadow-sm fw-bold"
+                      (click)="generate()"
+                      [disabled]="generating">
+                <span *ngIf="generating" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!generating" class="bi bi-lightning-charge-fill me-2"></i>
+                {{ generating ? 'Synthesizing...' : 'Execute Generation' }}
+              </button>
+              
+              <button *ngIf="readyBlob" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold" (click)="download()">
+                <i class="bi bi-download me-2"></i>Fetch PDF
+              </button>
+            </div>
           </div>
-          <div class="col-md-auto">
-            <button class="btn btn-gradient btn-sm px-4"
-                    (click)="generate()"
-                    [disabled]="generating">
-              <span *ngIf="generating" class="spinner-border spinner-border-sm me-2"></span>
-              <i *ngIf="!generating" class="bi bi-gear me-2"></i>
-              {{ generating ? 'Generating PDF...' : 'Generate Report' }}
-            </button>
+
+          <!-- banners -->
+          <div *ngIf="readyBlob" class="alert badge-approved border-0 shadow-sm py-3 mt-4 d-flex align-items-center gap-3">
+            <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+            <div>
+              <div class="fw-bold small text-success">Production Ready</div>
+              <div class="small">The PDF report has been successfully compiled and is ready for secure download.</div>
+            </div>
           </div>
-          <div class="col-md-auto" *ngIf="readyBlob">
-            <button class="btn btn-success btn-sm px-4" (click)="download()">
-              <i class="bi bi-download me-2"></i>Download PDF
-            </button>
+
+          <div *ngIf="errorMsg" class="alert badge-rejected border-0 shadow-sm py-3 mt-4 d-flex align-items-center gap-3">
+            <i class="bi bi-exclamation-octagon-fill fs-4 text-danger"></i>
+            <div>
+              <div class="fw-bold small text-danger">Process Interrupted</div>
+              <div class="small">{{ errorMsg }}</div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- success banner -->
-        <div *ngIf="readyBlob" class="alert alert-success small py-2 mt-3 mb-0 d-flex align-items-center gap-2">
-          <i class="bi bi-check-circle-fill"></i>
-          PDF ready — click <strong>Download PDF</strong> to save it.
+      <!-- History Table -->
+      <div class="card border-0 shadow-sm overflow-hidden">
+        <div class="card-header bg-transparent py-3 px-4 border-0 d-flex align-items-center justify-content-between">
+          <h6 class="mb-0 fw-bold">Executive Summary History</h6>
+          <button class="btn btn-icon btn-white border shadow-none" (click)="loadHistory()" title="Refresh Log">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
         </div>
-
-        <!-- error -->
-        <div *ngIf="errorMsg" class="alert alert-danger small py-2 mt-3 mb-0">
-          <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMsg }}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light-soft">
+              <tr>
+                <th class="ps-4">Report Designation</th>
+                <th>Classification</th>
+                <th>Delivery Status</th>
+                <th class="text-end pe-4">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="historyLoading">
+                <td colspan="4" class="text-center py-5">
+                  <div class="spinner-border spinner-border-sm text-primary"></div>
+                </td>
+              </tr>
+              <tr *ngFor="let r of history">
+                <td class="ps-4">
+                  <div class="fw-bold text-dark small">{{ r.title }}</div>
+                </td>
+                <td><span class="badge bg-primary-lite text-primary rounded-pill">{{ r.type }}</span></td>
+                <td>
+                  <span class="badge rounded-pill" [ngClass]="{
+                    'badge-approved': r.status === 'Completed' || r.status === 'Generated',
+                    'badge-rejected':  r.status === 'Failed',
+                    'badge-pending':  r.status === 'Pending'
+                  }">{{ r.status }}</span>
+                </td>
+                <td class="text-end pe-4 text-muted small">{{ r.createdAt | date:'medium' }}</td>
+              </tr>
+              <tr *ngIf="!historyLoading && history.length === 0">
+                <td colspan="4" class="text-center py-5 text-muted small italic">No historical records found.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
-    </div>
-
-    <!-- History Table -->
-    <div class="table-container">
-      <div class="px-3 py-3 border-bottom d-flex align-items-center justify-content-between">
-        <h6 class="mb-0 fw-semibold">Report History</h6>
-        <button class="btn btn-sm btn-light" (click)="loadHistory()" title="Refresh">
-          <i class="bi bi-arrow-clockwise"></i>
-        </button>
-      </div>
-      <div *ngIf="historyLoading" class="text-center py-5">
-        <div class="spinner-border text-primary"></div>
-      </div>
-      <div class="table-responsive" *ngIf="!historyLoading">
-        <table class="table table-hover mb-0 small">
-          <thead>
-            <tr>
-              <th class="ps-3">Title</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Generated</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let r of history">
-              <td class="ps-3 fw-medium">{{ r.title }}</td>
-              <td><span class="badge bg-light text-dark border">{{ r.type }}</span></td>
-              <td>
-                <span class="badge rounded-pill" [ngClass]="{
-                  'bg-success text-white': r.status === 'Completed' || r.status === 'Generated',
-                  'bg-danger text-white':  r.status === 'Failed',
-                  'bg-warning text-dark':  r.status === 'Pending'
-                }">{{ r.status }}</span>
-              </td>
-              <td class="text-muted">{{ r.createdAt | date:'medium' }}</td>
-            </tr>
-            <tr *ngIf="history.length === 0">
-              <td colspan="4" class="text-center text-muted py-4">No report history yet.</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
   `,
   styles: [`
+    .stat-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .border-primary-glow { box-shadow: 0 0 0 2px var(--primary-color) !important; }
     .bg-purple-lite { background: rgba(139,92,246,0.1); }
     .text-purple    { color: #7c3aed; }
     .bg-blue-lite   { background: rgba(37,99,235,0.1); }
     .bg-green-lite  { background: rgba(16,185,129,0.1); }
     .bg-orange-lite { background: rgba(245,158,11,0.1); }
-    .stat-card      { display: flex; flex-direction: column; }
-    .selected-card  { box-shadow: 0 0 0 2px #1a56db; }
+    .line-height-sm { line-height: 1.4; }
   `]
 })
 export class ReportsComponent implements OnInit {

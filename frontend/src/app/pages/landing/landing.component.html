@@ -1,49 +1,52 @@
 <div class="landing-page">
   <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-nav">
-    <div class="container">
-      <a class="navbar-brand d-flex align-items-center gap-2" routerLink="/">
+    <div class="container px-4">
+      <a class="navbar-brand d-flex align-items-center gap-3" routerLink="/">
         <div class="logo-icon">
           <i class="bi bi-shield-check"></i>
         </div>
         <span class="logo-text">SmartSure</span>
       </a>
-      <div class="d-flex gap-3">
-        <a routerLink="/login" class="nav-link text-white fw-bold">Sign In</a>
-        <a routerLink="/register" class="btn btn-light rounded-pill px-4 fw-bold">Customer Sign Up</a>
+      <div class="d-flex align-items-center gap-4">
+        <a routerLink="/login" class="text-white-50 text-decoration-none small fw-bold text-uppercase ls-wide transition hover-white">Executive Login</a>
+        <a routerLink="/register" class="btn btn-premium btn-premium-primary px-4">Get Started</a>
       </div>
     </div>
   </nav>
 
   <!-- Hero Section -->
   <header class="hero-section">
-    <div class="hero-content text-center container">
-      <div class="badge-pill mb-3">AI-Powered Insurance</div>
-      <h1 class="hero-title mb-4">Secure Your Future with <span class="gradient-text">SmartSure</span></h1>
+    <div class="hero-content text-center container px-4">
+      <div class="badge-pill pulse-slow">
+        <i class="bi bi-cpu-fill"></i>
+        <span>AI-Augmented Risk Intelligence</span>
+      </div>
+      <h1 class="hero-title mb-4">Engineering the <span class="gradient-text">Future of Protection</span></h1>
       <p class="hero-subtitle mb-5">
-        Experience the next generation of insurance management. 
-        Instant claims, transparent policies, and complete peace of mind.
+        Experience a hyper-efficient insurance infrastructure. 
+        Instant settlements, granular policy control, and unparalleled data transparency.
       </p>
       
-      <div class="auth-options d-flex justify-content-center gap-4 flex-wrap">
+      <div class="auth-options d-flex justify-content-center gap-4 flex-wrap slide-up">
         <!-- Customer Login Card -->
-        <div class="auth-card glass-morphism" routerLink="/login">
-          <div class="card-icon customer">
-            <i class="bi bi-person-badge"></i>
+        <div class="auth-card glass-morphism customer-card shadow-lg" routerLink="/login">
+          <div class="secondary-icon">
+            <i class="bi bi-fingerprint"></i>
           </div>
-          <h3>Customer Portal</h3>
-          <p>Manage your policies, track claims, and get instant support.</p>
-          <button class="btn btn-gradient rounded-pill w-100">Sign In as Customer</button>
+          <h3 class="text-white">Customer Portal</h3>
+          <p>Securely manage your asset portfolio, monitor real-time claim progress, and access 24/7 concierge support.</p>
+          <button class="btn btn-premium btn-premium-primary w-100 py-3">Enter Portal</button>
         </div>
 
         <!-- Admin Login Card -->
-        <div class="auth-card glass-morphism admin-card" routerLink="/login">
-          <div class="card-icon admin">
-            <i class="bi bi-shield-lock"></i>
+        <div class="auth-card glass-morphism admin-card shadow-lg" routerLink="/login">
+          <div class="secondary-icon">
+            <i class="bi bi-safe2-fill"></i>
           </div>
-          <h3>Admin Panel</h3>
-          <p>Review claims, audit logs, and manage the insurance catalog.</p>
-          <button class="btn btn-outline-light rounded-pill w-100">Sign In as Admin</button>
+          <h3 class="text-white">Administration</h3>
+          <p>Orchestrate claims, audit global log streams, and configure the underlying insurance logic layer.</p>
+          <button class="btn btn-premium btn-premium-outline w-100 py-3">Access Console</button>
         </div>
       </div>
     </div>
@@ -53,32 +56,44 @@
       <div class="blob blob-1"></div>
       <div class="blob blob-2"></div>
       <div class="blob blob-3"></div>
+      
+      <!-- Floating Glass Objects -->
+      <div class="floating-object lg" style="top: 15%; left: 5%; animation-delay: 0s;"></div>
+      <div class="floating-object md delayed" style="top: 60%; left: 15%; animation-delay: 2s;"></div>
+      <div class="floating-object sm" style="top: 20%; right: 10%; animation-delay: 1s;"></div>
+      <div class="floating-object md delayed" style="top: 70%; right: 20%; animation-delay: 3s;"></div>
+      <div class="floating-object sm" style="bottom: 15%; left: 40%; animation-delay: 4s;"></div>
     </div>
   </header>
 
   <!-- Statistics Section -->
-  <section class="stats-section py-5">
-    <div class="container">
-      <div class="row g-4 text-center">
+  <section class="stats-section">
+    <div class="container px-4">
+      <div class="row g-5 text-center">
         <div class="col-md-4">
-          <div class="stat-item">
-            <h2>50k+</h2>
-            <p>Active Policies</p>
+          <div class="stat-item slide-up" style="animation-delay: 0.1s">
+            <h2 class="m-0">50K+</h2>
+            <p class="m-0 small">Secured Assets</p>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="stat-item">
-            <h2>98%</h2>
-            <p>Claims Approved</p>
+          <div class="stat-item slide-up" style="animation-delay: 0.2s">
+            <h2 class="m-0">99.2%</h2>
+            <p class="m-0 small">Resolution Index</p>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="stat-item">
-            <h2>24/7</h2>
-            <p>Expert Support</p>
+          <div class="stat-item slide-up" style="animation-delay: 0.3s">
+            <h2 class="m-0">0.4s</h2>
+            <p class="m-0 small">Settlement Latency</p>
           </div>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- Footer -->
+  <footer class="py-5 text-center text-white-50 small mt-5 border-top border-white-05">
+     <p class="m-0 fw-bold ls-wide">© 2026 SMARTSURE INFRASTRUCTURE. ALL RIGHTS RESERVED.</p>
+  </footer>
 </div>

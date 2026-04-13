@@ -9,145 +9,165 @@ import { InsuranceType, InsuranceSubType } from '../../../models/models';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h5 class="fw-bold mb-0">Manage Insurance Catalog</h5>
-      <button class="btn btn-primary btn-sm" (click)="openTypeModal()">
-        <i class="bi bi-plus-lg me-1"></i> Add Insurance Type
-      </button>
-    </div>
+    <div class="fade-in">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h4 class="fw-bold text-dark m-0">Insurance Catalog</h4>
+          <p class="text-muted small mb-0">Configure primary insurance categories and specific plan subtypes</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="openTypeModal()">
+          <i class="bi bi-plus-lg me-2"></i> New Category
+        </button>
+      </div>
 
-    <div *ngIf="loading" class="text-center py-5">
-      <div class="spinner-border text-primary"></div>
-    </div>
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border spinner-border-sm text-primary"></div>
+        <div class="mt-2 text-muted small">Loading catalog architecture...</div>
+      </div>
 
-    <div *ngIf="!loading" class="row g-3">
-      <div class="col-12" *ngFor="let type of insuranceTypes">
-        <div class="table-container">
-          <!-- Type Header -->
-          <div class="px-3 py-3 border-bottom d-flex justify-content-between align-items-center">
-            <div>
-              <span class="fw-semibold">{{ type.name }}</span>
-              <span class="text-muted small ms-2">{{ type.description }}</span>
-              <span class="badge ms-2" [class]="type.isActive ? 'bg-success' : 'bg-secondary'">
-                {{ type.isActive ? 'Active' : 'Inactive' }}
-              </span>
+      <div *ngIf="!loading" class="row g-4">
+        <div class="col-12" *ngFor="let type of insuranceTypes">
+          <div class="card border-0 shadow-sm overflow-hidden">
+            <!-- Category Header -->
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center px-4">
+              <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-primary-lite text-primary sm"><i class="bi bi-collection"></i></div>
+                <div>
+                  <h6 class="fw-bold m-0 text-dark">{{ type.name }}</h6>
+                  <span class="text-muted x-small">{{ type.description || 'No description provided.' }}</span>
+                  <span class="badge ms-2 rounded-pill" [ngClass]="type.isActive ? 'badge-approved' : 'badge-rejected'">
+                    {{ type.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm" (click)="openSubTypeModal(type)">
+                  <i class="bi bi-plus-circle me-1"></i> Add Plan
+                </button>
+                <div class="btn-group btn-group-sm rounded-pill overflow-hidden border shadow-sm">
+                  <button class="btn btn-outline-primary border-0" (click)="editType(type)" title="Edit Category"><i class="bi bi-pencil-square"></i></button>
+                  <button class="btn btn-outline-danger border-0" (click)="deleteType(type.id)" title="Disable Category"><i class="bi bi-trash3"></i></button>
+                </div>
+              </div>
             </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-sm btn-outline-secondary" (click)="openSubTypeModal(type)">
-                <i class="bi bi-plus me-1"></i>Add SubType
-              </button>
-              <button class="btn btn-sm btn-outline-primary" (click)="editType(type)">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-danger" (click)="deleteType(type.id)">
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
-          </div>
 
-          <!-- SubTypes Table -->
-          <div class="table-responsive">
-            <table class="table table-hover mb-0 small">
-              <thead>
-                <tr><th>SubType Name</th><th>Description</th><th>Base Premium</th><th>Status</th><th>Actions</th></tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let sub of type.subTypes">
-                  <td class="fw-medium">{{ sub.name }}</td>
-                  <td class="text-muted">{{ sub.description }}</td>
-                  <td>₹{{ sub.basePremium | number:'1.2-2' }}</td>
-                  <td>
-                    <span class="badge rounded-pill" [class]="sub.isActive ? 'bg-success' : 'bg-secondary'">
-                      {{ sub.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="d-flex gap-1">
-                      <button class="btn btn-sm btn-outline-primary" (click)="editSubType(sub)">
-                        <i class="bi bi-pencil"></i>
-                      </button>
-                      <button class="btn btn-sm btn-outline-danger" (click)="deleteSubType(sub.id)">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr *ngIf="!type.subTypes || type.subTypes.length === 0">
-                  <td colspan="5" class="text-center text-muted py-3">No subtypes yet.</td>
-                </tr>
-              </tbody>
-            </table>
+            <!-- SubTypes Table -->
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0 small">
+                <thead class="bg-light-soft">
+                  <tr>
+                    <th class="ps-4">Plan Name</th>
+                    <th>Product Description</th>
+                    <th>Base Premium</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let sub of type.subTypes">
+                    <td class="ps-4 fw-bold text-dark">{{ sub.name }}</td>
+                    <td class="text-muted">{{ sub.description }}</td>
+                    <td class="fw-semibold">₹{{ sub.basePremium | number:'1.2-2' }}</td>
+                    <td>
+                      <span class="badge rounded-pill" [ngClass]="sub.isActive ? 'badge-approved' : 'badge-rejected'">
+                        {{ sub.isActive ? 'Active' : 'Inactive' }}
+                      </span>
+                    </td>
+                    <td class="text-end pe-4">
+                      <div class="btn-group btn-group-sm rounded shadow-sm overflow-hidden border">
+                        <button class="btn btn-white border-0" (click)="editSubType(sub)" title="Edit Plan">
+                          <i class="bi bi-pencil-square text-primary"></i>
+                        </button>
+                        <button class="btn btn-white border-0" (click)="deleteSubType(sub.id)" title="Remove Plan">
+                          <i class="bi bi-trash3 text-danger"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr *ngIf="!type.subTypes || type.subTypes.length === 0">
+                    <td colspan="5" class="text-center text-muted py-4 small italic">
+                      <i class="bi bi-info-circle me-1"></i>No specific plans configured for this category yet.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Insurance Type Modal -->
-    <div class="modal fade show d-block" style="background:rgba(0,0,0,0.5)" *ngIf="showTypeModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h6 class="modal-title fw-semibold">{{ editingType ? 'Edit' : 'Add' }} Insurance Type</h6>
-            <button class="btn-close" (click)="closeModals()"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Name</label>
-              <input class="form-control" [(ngModel)]="typeForm.name" placeholder="e.g. Vehicle Insurance">
+      <!-- Category Modal -->
+      <div class="modal-glass fade-in" *ngIf="showTypeModal" (click)="closeModals()">
+        <div class="modal-glass-content" (click)="$event.stopPropagation()" style="max-width: 500px;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+              <h5 class="modal-title fw-bold">
+                <i class="bi bi-plus-circle-dotted me-2 text-primary"></i>
+                {{ editingType ? 'Update' : 'Initialize' }} Category
+              </h5>
+              <button class="btn-close" (click)="closeModals()"></button>
             </div>
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Description</label>
-              <textarea class="form-control" [(ngModel)]="typeForm.description" rows="2"></textarea>
+            <div class="modal-body py-4 px-4">
+              <div class="mb-4">
+                <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Category Name</label>
+                <input class="form-control premium-input shadow-sm" [(ngModel)]="typeForm.name" placeholder="e.g. Life Insurance">
+              </div>
+              <div class="mb-4">
+                <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Strategic Description</label>
+                <textarea class="form-control premium-textarea shadow-sm" [(ngModel)]="typeForm.description" rows="3" placeholder="Define the scope of this category..."></textarea>
+              </div>
+              <div class="form-check form-switch" *ngIf="editingType">
+                <input class="form-check-input" type="checkbox" role="switch" [(ngModel)]="typeForm.isActive" id="typeActive">
+                <label class="form-check-label small fw-bold text-muted" for="typeActive">Category Visibility Active</label>
+              </div>
             </div>
-            <div class="form-check" *ngIf="editingType">
-              <input class="form-check-input" type="checkbox" [(ngModel)]="typeForm.isActive" id="typeActive">
-              <label class="form-check-label small" for="typeActive">Active</label>
+            <div class="modal-footer border-0 pt-0 pb-4 gap-2 px-4">
+              <button class="btn btn-light rounded-pill px-4" (click)="closeModals()">Cancel</button>
+              <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" (click)="saveType()" [disabled]="saving">
+                <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+                {{ editingType ? 'Synchronize Changes' : 'Execute Creation' }}
+              </button>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary btn-sm" (click)="closeModals()">Cancel</button>
-            <button class="btn btn-primary btn-sm" (click)="saveType()" [disabled]="saving">
-              <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
-              {{ editingType ? 'Update' : 'Create' }}
-            </button>
-          </div>
         </div>
       </div>
-    </div>
 
-    <!-- SubType Modal -->
-    <div class="modal fade show d-block" style="background:rgba(0,0,0,0.5)" *ngIf="showSubTypeModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h6 class="modal-title fw-semibold">{{ editingSubType ? 'Edit' : 'Add' }} SubType</h6>
-            <button class="btn-close" (click)="closeModals()"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Name</label>
-              <input class="form-control" [(ngModel)]="subTypeForm.name" placeholder="e.g. Comprehensive">
+      <!-- Plan SubType Modal -->
+      <div class="modal-glass fade-in" *ngIf="showSubTypeModal" (click)="closeModals()">
+        <div class="modal-glass-content" (click)="$event.stopPropagation()" style="max-width: 500px;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+              <h5 class="modal-title fw-bold">
+                <i class="bi bi-shield-plus me-2 text-primary"></i>
+                {{ editingSubType ? 'Modify' : 'Configure' }} Insurance Plan
+              </h5>
+              <button class="btn-close" (click)="closeModals()"></button>
             </div>
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Description</label>
-              <textarea class="form-control" [(ngModel)]="subTypeForm.description" rows="2"></textarea>
+            <div class="modal-body py-4 px-4">
+              <div class="mb-4">
+                <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Plan Name</label>
+                <input class="form-control premium-input shadow-sm" [(ngModel)]="subTypeForm.name" placeholder="e.g. Platinum Protection">
+              </div>
+              <div class="mb-4">
+                <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Plan Benefits Description</label>
+                <textarea class="form-control premium-textarea shadow-sm" [(ngModel)]="subTypeForm.description" rows="3" placeholder="Detailed plan coverage info..."></textarea>
+              </div>
+              <div class="mb-4">
+                <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Monthly Base Premium (₹)</label>
+                <div class="input-group shadow-sm">
+                  <span class="input-group-text bg-white border-end-0">₹</span>
+                  <input class="form-control premium-input border-start-0" type="number" [(ngModel)]="subTypeForm.basePremium" min="0">
+                </div>
+              </div>
+              <div class="form-check form-switch" *ngIf="editingSubType">
+                <input class="form-check-input" type="checkbox" role="switch" [(ngModel)]="subTypeForm.isActive" id="subActive">
+                <label class="form-check-label small fw-bold text-muted" for="subActive">Plan Availability Active</label>
+              </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label small fw-medium">Base Premium ($)</label>
-              <input class="form-control" type="number" [(ngModel)]="subTypeForm.basePremium" min="0">
+            <div class="modal-footer border-0 pt-0 pb-4 gap-2 px-4">
+              <button class="btn btn-light rounded-pill px-4" (click)="closeModals()">Cancel</button>
+              <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" (click)="saveSubType()" [disabled]="saving">
+                <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+                {{ editingSubType ? 'Apply Config' : 'Deploy Plan' }}
+              </button>
             </div>
-            <div class="form-check" *ngIf="editingSubType">
-              <input class="form-check-input" type="checkbox" [(ngModel)]="subTypeForm.isActive" id="subActive">
-              <label class="form-check-label small" for="subActive">Active</label>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary btn-sm" (click)="closeModals()">Cancel</button>
-            <button class="btn btn-primary btn-sm" (click)="saveSubType()" [disabled]="saving">
-              <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
-              {{ editingSubType ? 'Update' : 'Create' }}
-            </button>
-          </div>
         </div>
       </div>
     </div>

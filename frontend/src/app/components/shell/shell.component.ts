@@ -23,28 +23,29 @@ interface NavItem {
     <aside class="sidebar" [class.open]="sidebarOpen">
       <div class="sidebar-logo">
         <div class="logo-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
         <span class="logo-text">SmartSure</span>
       </div>
 
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav mt-3">
         <a *ngFor="let item of navItems"
            [routerLink]="item.path"
+           [routerLinkActiveOptions]="{exact: item.path === '/claims' || item.path === '/policies' || item.path === '/dashboard'}"
            routerLinkActive="active"
            class="nav-link-item"
            (click)="closeSidebar()">
           <i [class]="'bi ' + item.icon"></i>
-          {{ item.label }}
+          <span>{{ item.label }}</span>
         </a>
       </nav>
 
-      <div class="sidebar-footer">
-        <button class="nav-link-item w-100 border-0 bg-transparent" (click)="logout()">
+      <div class="mt-auto p-3">
+        <button class="nav-link-item w-100 border-0 bg-transparent text-danger-hover" (click)="logout()">
           <i class="bi bi-box-arrow-left"></i>
-          Logout
+          <span>Logout</span>
         </button>
       </div>
     </aside>
@@ -53,24 +54,31 @@ interface NavItem {
     <div class="main-wrapper">
       <!-- Top bar -->
       <header class="topbar">
-        <div class="d-flex align-items-center gap-3">
-          <button class="d-lg-none btn btn-sm btn-light p-2" (click)="toggleSidebar()">
-            <i class="bi bi-list fs-5"></i>
+        <div class="d-flex align-items-center gap-4">
+          <button class="d-lg-none btn btn-light glass shadow-none p-2 border-0" (click)="toggleSidebar()">
+            <i class="bi bi-list fs-4"></i>
           </button>
-          <span class="topbar-title">{{ pageTitle }}</span>
+          <div class="d-flex flex-column">
+            <span class="topbar-title">{{ pageTitle }}</span>
+            <span class="text-muted small d-none d-md-block">Welcome back, {{ userName }}</span>
+          </div>
         </div>
+        
         <div class="d-flex align-items-center gap-3">
-          <!-- User Role Display -->
-          <span class="badge bg-secondary text-white text-uppercase" style="font-size:0.85rem; letter-spacing:0.5px;">
-            {{ userRole }}
-          </span>
-          <div class="user-avatar">{{ userInitials }}</div>
-          <span class="d-none d-sm-block text-sm fw-medium text-secondary">{{ userName }}</span>
+          <div class="d-none d-sm-flex flex-column align-items-end me-2">
+            <span class="fw-bold small">{{ userName }}</span>
+            <span class="badge bg-primary-lite rounded-pill py-0 px-2" style="font-size: 0.65rem; font-weight: 800;">
+              {{ userRole }}
+            </span>
+          </div>
+          <div class="user-avatar shadow-sm border border-2 border-white">
+            {{ userInitials }}
+          </div>
         </div>
       </header>
 
       <!-- Page content -->
-      <main class="page-content">
+      <main class="page-content fade-in">
         <router-outlet />
       </main>
     </div>
