@@ -40,14 +40,17 @@ public class AdminDbContext : DbContext
         modelBuilder.Entity<AdminPolicy>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.PolicyNumber).IsRequired().HasMaxLength(50);
             entity.HasIndex(e => e.PolicyNumber).IsUnique();
+            entity.Property(e => e.PolicyNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.PremiumAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.InsuredDeclaredValue).HasColumnType("decimal(18,2)");
         });
 
         modelBuilder.Entity<AdminClaim>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.PolicyNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.ClaimAmount).HasColumnType("decimal(18,2)");
         });
     }
 }

@@ -93,8 +93,13 @@ public class AdminPolicyService : IAdminPolicyService
         var allPolicies = await _policyRepo.GetAllAsync();
         var query = allPolicies.AsQueryable();
 
-        if (!string.IsNullOrEmpty(searchTerm))
-            query = query.Where(p => p.PolicyNumber.Contains(searchTerm) || p.CustomerName.Contains(searchTerm));
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(p => 
+                (p.PolicyNumber != null && p.PolicyNumber.Contains(term, StringComparison.OrdinalIgnoreCase)) || 
+                (p.CustomerName != null && p.CustomerName.Contains(term, StringComparison.OrdinalIgnoreCase)));
+        }
 
         if (!string.IsNullOrEmpty(status))
             query = query.Where(p => p.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
@@ -119,6 +124,7 @@ public class AdminPolicyService : IAdminPolicyService
         CustomerName = policy.CustomerName ?? "Not Provided",
         InsuranceType = policy.InsuranceType,
         PremiumAmount = policy.PremiumAmount,
+        InsuredDeclaredValue = policy.InsuredDeclaredValue,
         Status = policy.Status
     };
 }

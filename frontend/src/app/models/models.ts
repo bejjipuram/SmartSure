@@ -99,6 +99,7 @@ export interface AdminPolicy {
   customerName: string;
   insuranceType: string;
   premiumAmount: number;
+  insuredDeclaredValue: number;
   status: string;
   createdAt?: string;
 }

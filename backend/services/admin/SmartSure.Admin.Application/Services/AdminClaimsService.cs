@@ -31,7 +31,15 @@ public class AdminClaimsService : IAdminClaimsService
         if (userId.HasValue) query = query.Where(c => c.UserId == userId.Value);
 
         var total = query.Count();
-        var items = query.Skip((page - 1) * pageSize).Take(pageSize).Select(MapToDto).ToList();
+        
+        // Custom ordering: Submitted (1) -> Under Review (2) -> Others (3)
+        var items = query
+            .OrderBy(c => c.Status == "Submitted" ? 1 : (c.Status == "Under Review" ? 2 : 3))
+            .ThenByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(MapToDto)
+            .ToList();
 
         return new PagedResult<AdminClaimDto>
         {

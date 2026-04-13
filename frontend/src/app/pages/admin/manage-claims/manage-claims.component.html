@@ -52,9 +52,9 @@
                   <button class="btn btn-outline-secondary" (click)="openDetail(c)" title="View documents">
                     <i class="bi bi-eye"></i>
                   </button>
-                  <button class="btn btn-outline-info" (click)="processClaim(c.claimId, 'review')" [disabled]="c.status === 'Under Review'">Review</button>
-                  <button class="btn btn-outline-success" (click)="processClaim(c.claimId, 'approve')" [disabled]="c.status === 'Approved'">Approve</button>
-                  <button class="btn btn-outline-danger" (click)="processClaim(c.claimId, 'reject')" [disabled]="c.status === 'Rejected'">Reject</button>
+                  <button class="btn btn-outline-info" (click)="processClaim(c.claimId, 'review')" [disabled]="c.status === 'Approved' || c.status === 'Rejected' || c.status === 'Under Review' || c.status === 'UnderReview'">Review</button>
+                  <button class="btn btn-outline-success" (click)="processClaim(c.claimId, 'approve')" [disabled]="c.status === 'Approved' || c.status === 'Rejected'">Approve</button>
+                  <button class="btn btn-outline-danger" (click)="processClaim(c.claimId, 'reject')" [disabled]="c.status === 'Approved' || c.status === 'Rejected'">Reject</button>
                 </div>
               </td>
             </tr>
@@ -156,15 +156,15 @@
       <div class="modal-footer border-top-0">
         <button class="btn btn-outline-secondary" (click)="closeDetail()">Close</button>
         <button class="btn btn-outline-info" (click)="processClaim(selectedClaim.claimId, 'review')"
-                [disabled]="selectedClaim.status === 'Under Review'">
+                [disabled]="selectedClaim.status === 'Approved' || selectedClaim.status === 'Rejected' || selectedClaim.status === 'Under Review' || selectedClaim.status === 'UnderReview'">
           <i class="bi bi-eye me-1"></i>Mark Under Review
         </button>
         <button class="btn btn-success" (click)="processClaim(selectedClaim.claimId, 'approve')"
-                [disabled]="selectedClaim.status === 'Approved'">
+                [disabled]="selectedClaim.status === 'Approved' || selectedClaim.status === 'Rejected'">
           <i class="bi bi-check-circle me-1"></i>Approve
         </button>
         <button class="btn btn-danger" (click)="processClaim(selectedClaim.claimId, 'reject')"
-                [disabled]="selectedClaim.status === 'Rejected'">
+                [disabled]="selectedClaim.status === 'Approved' || selectedClaim.status === 'Rejected'">
           <i class="bi bi-x-circle me-1"></i>Reject
         </button>
       </div>

@@ -48,7 +48,7 @@
                   <span>
                     Policy active from <strong>{{ selectedPolicy.startDate | date:'MMM d, y' }}</strong>
                     to <strong>{{ selectedPolicy.endDate | date:'MMM d, y' }}</strong>.
-                    Max claimable IDV: <strong>₹{{ selectedPolicy.insuredDeclaredValue | number }}</strong>
+                    Max claimable IDV: <strong>₹{{ selectedPolicy.insuredDeclaredValue | number:'1.2-2' }}</strong>
                   </span>
                 </div>
               </div>

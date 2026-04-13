@@ -67,7 +67,7 @@ export class BuyPolicyComponent implements OnInit {
   calculateVehicleIDV(): number {
     const age = new Date().getFullYear() - this.vehicle.year;
     let dep = age < 1 ? 0.05 : age < 2 ? 0.15 : age < 3 ? 0.20 : age < 4 ? 0.30 : age < 5 ? 0.40 : 0.50;
-    return Math.round(this.vehicle.listedPrice * (1 - dep));
+    return Number((this.vehicle.listedPrice * (1 - dep)).toFixed(2));
   }
 
   // Home IDV: reconstruction cost (80% of market value) minus age depreciation
@@ -76,7 +76,7 @@ export class BuyPolicyComponent implements OnInit {
     const age = new Date().getFullYear() - this.home.yearBuilt;
     const dep = age < 5 ? 0.10 : age < 10 ? 0.20 : age < 20 ? 0.30 : age < 30 ? 0.40 : 0.50;
     const reconstructionCost = this.home.propertyValue * 0.80; // 80% of market value
-    return Math.round(reconstructionCost * (1 - dep));
+    return Number((reconstructionCost * (1 - dep)).toFixed(2));
   }
   calculatePremium(idv: number): number {
     if (this.isVehicle()) {

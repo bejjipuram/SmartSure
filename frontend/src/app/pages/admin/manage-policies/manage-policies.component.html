@@ -4,7 +4,7 @@
       <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-file-earmark-text me-2"></i>Global Policy Management</h5>
       <div class="d-flex gap-2">
         <div class="input-group input-group-sm" style="width: 220px;">
-          <input type="text" class="form-control rounded-start-pill border-end-0" placeholder="Search policies..." [(ngModel)]="searchTerm" (keyup.enter)="onSearch()">
+          <input type="text" class="form-control rounded-start-pill border-end-0" placeholder="Search policies..." [(ngModel)]="searchTerm" (ngModelChange)="onSearch()">
           <button class="btn btn-outline-secondary rounded-end-pill border-start-0" (click)="onSearch()">
             <i class="bi bi-search"></i>
           </button>
@@ -27,6 +27,7 @@
               <th>Type</th>
               <th>Status</th>
               <th>Premium</th>
+              <th>IDV</th>
               <th class="text-end pe-4">Actions</th>
             </tr>
           </thead>
@@ -49,6 +50,7 @@
                 }">{{ p.status }}</span>
               </td>
               <td class="fw-semibold text-primary">₹{{ p.premiumAmount | number:'1.2-2' }}</td>
+              <td class="fw-semibold text-secondary">₹{{ p.insuredDeclaredValue | number:'1.2-2' }}</td>
               <td class="text-end pe-4">
                 <button class="btn btn-sm btn-outline-danger rounded-pill"
                         (click)="cancelPolicy(p.policyId)"

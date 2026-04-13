@@ -42,6 +42,7 @@ public class PolicyCreatedConsumer : IConsumer<PolicyCreatedEvent>
                 CustomerName = message.CustomerName,
                 InsuranceType = message.InsuranceType,
                 PremiumAmount = message.PremiumAmount,
+                InsuredDeclaredValue = message.InsuredDeclaredValue,
                 Status = message.Status
             };
 
@@ -51,7 +52,14 @@ public class PolicyCreatedConsumer : IConsumer<PolicyCreatedEvent>
         }
         else
         {
-            _logger.LogWarning("PolicyId {PolicyId} already exists in Admin DB. Skipping creation.", message.PolicyId);
+            // Update existing policy with IDV if it's missing or updated
+            localPolicy.InsuredDeclaredValue = message.InsuredDeclaredValue;
+            localPolicy.PremiumAmount = message.PremiumAmount;
+            localPolicy.Status = message.Status;
+            
+            await _policyRepo.UpdateAsync(localPolicy);
+            await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Updated mirrored PolicyId {PolicyId} in Admin DB.", message.PolicyId);
         }
     }
 }

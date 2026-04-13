@@ -40,6 +40,7 @@ public class AdminPolicyDto
     public string CustomerName { get; set; } = string.Empty;
     public string InsuranceType { get; set; } = string.Empty;
     public decimal PremiumAmount { get; set; }
+    public decimal InsuredDeclaredValue { get; set; }
     public string Status { get; set; } = string.Empty;
 }
 

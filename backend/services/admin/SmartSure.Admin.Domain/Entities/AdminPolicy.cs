@@ -9,5 +9,6 @@ public class AdminPolicy : BaseEntity
     public string CustomerName { get; set; } = string.Empty;
     public string InsuranceType { get; set; } = string.Empty; // Health, Vehicle, Home
     public decimal PremiumAmount { get; set; }
+    public decimal InsuredDeclaredValue { get; set; }
     public string Status { get; set; } = "Active"; // Active, Cancelled, Expired
 }
