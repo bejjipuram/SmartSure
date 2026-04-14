@@ -138,6 +138,8 @@ export class LoginComponent implements OnInit {
         const msg: string = err?.error?.errorMessage ?? err?.error?.message ?? 'Login failed. Please check your credentials.';
         if (msg.toLowerCase().includes('verify your email')) {
           this.emailNotVerified = true;
+          // Store password so VerifyEmailComponent can auto-login after OTP
+          sessionStorage.setItem('pending_reg_password', this.password);
         } else {
           this.error = msg;
         }
@@ -150,7 +152,14 @@ export class LoginComponent implements OnInit {
     this.resendLoading = true;
     this.resendSuccess = false;
     this.auth.resendVerification(this.email).subscribe({
-      next: () => { this.resendSuccess = true; this.resendLoading = false; },
+      next: () => {
+        this.resendSuccess = true;
+        this.resendLoading = false;
+        // Navigate to verify-email page after a short delay so user sees success message
+        setTimeout(() => {
+          this.router.navigate(['/verify-email'], { queryParams: { email: this.email } });
+        }, 1500);
+      },
       error: () => { this.resendLoading = false; }
     });
   }

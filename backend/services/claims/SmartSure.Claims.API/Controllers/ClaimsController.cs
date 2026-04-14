@@ -123,4 +123,13 @@ public class ClaimsController : ControllerBase
         var summary = await _claimService.GetClaimSummaryAsync(userId);
         return Ok(summary);
     }
+
+    [HttpPost("replay-claim-submitted-events")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> ReplayClaims()
+    {
+        var result = await _claimService.ReplayClaimSubmittedEventsAsync();
+        if (!result.IsSuccess) return BadRequest(new { result.ErrorMessage });
+        return Ok(new { Count = result.Data });
+    }
 }

@@ -82,15 +82,20 @@ public class AdminUsersService : IAdminUsersService
 public class AdminPolicyService : IAdminPolicyService
 {
     private readonly IAdminRepository<AdminPolicy> _policyRepo;
+    private readonly IAdminRepository<AdminUser> _userRepo;
 
-    public AdminPolicyService(IAdminRepository<AdminPolicy> policyRepo)
+    public AdminPolicyService(IAdminRepository<AdminPolicy> policyRepo, IAdminRepository<AdminUser> userRepo)
     {
         _policyRepo = policyRepo;
+        _userRepo = userRepo;
     }
 
     public async Task<PagedResult<AdminPolicyDto>> GetPoliciesAsync(string? searchTerm, string? status, int page, int pageSize)
     {
         var allPolicies = await _policyRepo.GetAllAsync();
+        var allUsers = await _userRepo.GetAllAsync();
+        var userMap = allUsers.ToDictionary(u => u.UserId, u => u.FullName);
+
         var query = allPolicies.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -105,7 +110,7 @@ public class AdminPolicyService : IAdminPolicyService
             query = query.Where(p => p.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
 
         var total = query.Count();
-        var items = query.Skip((page - 1) * pageSize).Take(pageSize).Select(MapToDto).ToList();
+        var items = query.Skip((page - 1) * pageSize).Take(pageSize).Select(p => MapToDto(p, userMap)).ToList();
 
         return new PagedResult<AdminPolicyDto>
         {
@@ -116,12 +121,13 @@ public class AdminPolicyService : IAdminPolicyService
         };
     }
 
-    private AdminPolicyDto MapToDto(AdminPolicy policy) => new AdminPolicyDto
+    private AdminPolicyDto MapToDto(AdminPolicy policy, Dictionary<Guid, string> userMap) => new AdminPolicyDto
     {
         Id = policy.Id,
         PolicyId = policy.PolicyId,
+        UserId = policy.UserId,
         PolicyNumber = policy.PolicyNumber,
-        CustomerName = policy.CustomerName ?? "Not Provided",
+        CustomerName = (userMap.TryGetValue(policy.UserId, out var name) ? name : policy.CustomerName) ?? "Unknown",
         InsuranceType = policy.InsuranceType,
         PremiumAmount = policy.PremiumAmount,
         InsuredDeclaredValue = policy.InsuredDeclaredValue,

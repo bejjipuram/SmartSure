@@ -31,7 +31,15 @@ public class UserRegisteredConsumer : IConsumer<UserRegisteredEvent>
         _logger.LogInformation("Received UserRegisteredEvent for UserId {UserId} - Email: {Email}", message.UserId, message.Email);
 
         var existingUsers = await _userRepo.GetAllAsync();
+        
+        // Search by UserId first
         var localUser = existingUsers.FirstOrDefault(u => u.UserId == message.UserId);
+
+        // If not found by UserId, search by Email (handle re-registrations)
+        if (localUser == null)
+        {
+            localUser = existingUsers.FirstOrDefault(u => u.Email.Equals(message.Email, StringComparison.OrdinalIgnoreCase));
+        }
 
         if (localUser == null)
         {
@@ -51,7 +59,20 @@ public class UserRegisteredConsumer : IConsumer<UserRegisteredEvent>
         }
         else
         {
-            _logger.LogWarning("UserId {UserId} already exists in Admin DB! Ignoring.", message.UserId);
+            // Update existing user if details changed or UserId changed (re-registration)
+            if (localUser.UserId != message.UserId)
+            {
+                _logger.LogInformation("Updating UserId for existing user {Email} from {OldId} to {NewId}", 
+                    message.Email, localUser.UserId, message.UserId);
+                localUser.UserId = message.UserId;
+            }
+
+            localUser.FullName = message.FullName;
+            localUser.Role = message.Role;
+            
+            await _userRepo.UpdateAsync(localUser);
+            await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Updated mirrored user {Email} in Admin DB.", message.Email);
         }
     }
 }

@@ -12,15 +12,18 @@ namespace SmartSure.Admin.Application.Consumers;
 public class ClaimSubmittedConsumer : IConsumer<ClaimSubmittedEvent>
 {
     private readonly IAdminRepository<AdminClaim> _claimRepo;
+    private readonly IAdminRepository<AdminUser> _userRepo;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ClaimSubmittedConsumer> _logger;
 
     public ClaimSubmittedConsumer(
         IAdminRepository<AdminClaim> claimRepo,
+        IAdminRepository<AdminUser> userRepo,
         IUnitOfWork unitOfWork,
         ILogger<ClaimSubmittedConsumer> logger)
     {
         _claimRepo = claimRepo;
+        _userRepo = userRepo;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -28,19 +31,24 @@ public class ClaimSubmittedConsumer : IConsumer<ClaimSubmittedEvent>
     public async Task Consume(ConsumeContext<ClaimSubmittedEvent> context)
     {
         var message = context.Message;
-        _logger.LogInformation("Received ClaimSubmittedEvent for ClaimId: {ClaimId}", message.ClaimId);
+        _logger.LogInformation("Received ClaimSubmittedEvent for ClaimId: {ClaimId}, UserId: {UserId}", message.ClaimId, message.UserId);
 
         var existingClaims = await _claimRepo.GetAllAsync();
         var localClaim = existingClaims.FirstOrDefault(c => c.ClaimId == message.ClaimId);
 
         if (localClaim == null)
         {
+            var allUsers = await _userRepo.GetAllAsync();
+            var adminUser = allUsers.FirstOrDefault(u => u.UserId == message.UserId);
+            var resolvedName = adminUser?.FullName ?? message.CustomerName;
+            if (string.IsNullOrEmpty(resolvedName)) resolvedName = "Unknown";
+
             var adminClaim = new AdminClaim
             {
                 ClaimId = message.ClaimId,
                 UserId = message.UserId,
                 PolicyId = message.PolicyId,
-                CustomerName = !string.IsNullOrEmpty(message.CustomerName) ? message.CustomerName : "Unknown",
+                CustomerName = resolvedName,
                 PolicyNumber = message.PolicyNumber,
                 ClaimNumber = message.ClaimNumber,
                 ClaimAmount = message.ClaimAmount,
@@ -52,7 +60,7 @@ public class ClaimSubmittedConsumer : IConsumer<ClaimSubmittedEvent>
 
             await _claimRepo.AddAsync(adminClaim);
             await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Successfully mirrored ClaimId {ClaimId} into Admin DB.", message.ClaimId);
+            _logger.LogInformation("Successfully mirrored ClaimId {ClaimId} for user {Name} into Admin DB.", message.ClaimId, resolvedName);
         }
         else
         {

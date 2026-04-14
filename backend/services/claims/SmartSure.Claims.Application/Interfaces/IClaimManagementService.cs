@@ -25,4 +25,5 @@ public interface IClaimManagementService
     
     // Admin only
     Task<Result> ProcessClaimAsync(int claimId, Guid adminId, bool approve, string remarks);
+    Task<Result<int>> ReplayClaimSubmittedEventsAsync();
 }

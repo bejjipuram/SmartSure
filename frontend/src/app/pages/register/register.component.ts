@@ -49,11 +49,11 @@ import { COUNTRY_CODES } from '../../models/country-codes';
                 <span class="input-group-text bg-transparent border-end-0 text-white-50"><i class="bi bi-envelope"></i></span>
                 <input type="email" class="form-control border-start-0 ps-0 text-white" [(ngModel)]="email" name="email" required placeholder="you@example.com" autocomplete="email">
               </div>
-              <div *ngIf="email && !validateEmail(email)" class="text-danger x-small mt-1 fw-bold">Invalid protocol format</div>
+              <div *ngIf="email && !validateEmail(email)" class="text-danger x-small mt-1 fw-bold">Invalid Email format</div>
             </div>
 
             <div class="col-12">
-              <label class="form-label text-white-50 x-small fw-bold text-uppercase ls-wide">Mobile Vector</label>
+              <label class="form-label text-white-50 x-small fw-bold text-uppercase ls-wide">Mobile Number</label>
               <div class="input-group">
                 <span class="input-group-text bg-transparent border-end-0 text-white-50"><i class="bi bi-phone"></i></span>
                 <input type="tel" class="form-control border-start-0 ps-0 text-white" [(ngModel)]="phone" name="phone" required pattern="[6-9]{1}[0-9]{9}" placeholder="9876543210">
@@ -89,7 +89,7 @@ import { COUNTRY_CODES } from '../../models/country-codes';
         </form>
 
         <div class="d-flex align-items-center my-4 opacity-50">
-          <hr class="flex-grow-1 border-white"><span class="px-3 text-white x-small fw-bold">OR PROVIDER</span><hr class="flex-grow-1 border-white">
+          <hr class="flex-grow-1 border-white"><span class="px-3 text-white x-small fw-bold">OR</span><hr class="flex-grow-1 border-white">
         </div>
 
         <a href="http://localhost:5001/api/auth/google" class="btn btn-premium btn-premium-outline w-100 py-2 d-flex align-items-center justify-content-center gap-3 transition">
@@ -104,7 +104,7 @@ import { COUNTRY_CODES } from '../../models/country-codes';
         </a>
 
         <p class="text-center small mt-5 mb-0 text-white-50">
-          Already a member of the grid?
+          Already a member of the SmartSure network?
           <a routerLink="/login" class="text-primary fw-bold text-decoration-none ms-1">Authorize Session</a>
         </p>
       </div>

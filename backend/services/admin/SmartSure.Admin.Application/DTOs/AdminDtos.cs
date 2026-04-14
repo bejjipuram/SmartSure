@@ -37,6 +37,7 @@ public class AdminPolicyDto
 {
     public int Id { get; set; }
     public Guid PolicyId { get; set; }
+    public Guid UserId { get; set; }
     public string PolicyNumber { get; set; } = string.Empty;
     public string CustomerName { get; set; } = string.Empty;
     public string InsuranceType { get; set; } = string.Empty;

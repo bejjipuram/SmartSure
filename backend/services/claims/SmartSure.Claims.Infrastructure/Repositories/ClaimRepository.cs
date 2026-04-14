@@ -81,6 +81,11 @@ public class ClaimRepository : IClaimRepository
         return summary;
     }
 
+    public async Task<IEnumerable<Claim>> GetAllClaimsAsync()
+    {
+        return await _context.Claims.ToListAsync();
+    }
+
     public Task UpdateClaimAsync(Claim claim)
     {
         _context.Claims.Update(claim);

@@ -13,6 +13,7 @@ public interface IClaimRepository
     Task AddClaimAsync(Claim claim);
     Task UpdateClaimAsync(Claim claim);
     Task<Dictionary<string, int>> GetClaimSummaryAsync(Guid userId);
+    Task<IEnumerable<Claim>> GetAllClaimsAsync();
     
     Task<ValidPolicy?> GetValidPolicyAsync(Guid policyId);
     Task AddValidPolicyAsync(ValidPolicy policy);

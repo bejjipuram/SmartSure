@@ -10,12 +10,14 @@ namespace SmartSure.Admin.Application.Services;
 public class AdminClaimsService : IAdminClaimsService
 {
     private readonly IAdminRepository<AdminClaim> _claimRepo;
+    private readonly IAdminRepository<AdminUser> _userRepo;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAdminAuditLogService _auditLogService;
     private readonly IBus _bus;
-    public AdminClaimsService(IAdminRepository<AdminClaim> claimRepo, IUnitOfWork unitOfWork, IAdminAuditLogService auditLogService, IBus bus)
+    public AdminClaimsService(IAdminRepository<AdminClaim> claimRepo, IAdminRepository<AdminUser> userRepo, IUnitOfWork unitOfWork, IAdminAuditLogService auditLogService, IBus bus)
     {
         _claimRepo = claimRepo;
+        _userRepo = userRepo;
         _unitOfWork = unitOfWork;
         _auditLogService = auditLogService;
         _bus = bus;
@@ -24,6 +26,9 @@ public class AdminClaimsService : IAdminClaimsService
     public async Task<PagedResult<AdminClaimDto>> GetClaimsAsync(string? status, DateTime? fromDate, Guid? userId, int page, int pageSize)
     {
         var allClaims = await _claimRepo.GetAllAsync();
+        var allUsers = await _userRepo.GetAllAsync();
+        var userMap = allUsers.ToDictionary(u => u.UserId, u => u.FullName);
+
         var query = allClaims.AsQueryable();
 
         if (!string.IsNullOrEmpty(status)) query = query.Where(c => c.Status == status);
@@ -38,7 +43,7 @@ public class AdminClaimsService : IAdminClaimsService
             .ThenByDescending(c => c.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(MapToDto)
+            .Select(c => MapToDto(c, userMap))
             .ToList();
 
         return new PagedResult<AdminClaimDto>
@@ -53,7 +58,11 @@ public class AdminClaimsService : IAdminClaimsService
     public async Task<AdminClaimDto?> GetClaimByIdAsync(int claimId)
     {
         var claim = (await _claimRepo.GetAllAsync()).FirstOrDefault(c => c.ClaimId == claimId);
-        return claim != null ? MapToDto(claim) : null;
+        if (claim == null) return null;
+
+        var allUsers = await _userRepo.GetAllAsync();
+        var userMap = allUsers.ToDictionary(u => u.UserId, u => u.FullName);
+        return MapToDto(claim, userMap);
     }
 
     public async Task<bool> MarkAsUnderReviewAsync(int claimId, string remarks)
@@ -105,12 +114,12 @@ public class AdminClaimsService : IAdminClaimsService
         return true;
     }
 
-    private AdminClaimDto MapToDto(AdminClaim claim) => new AdminClaimDto
+    private AdminClaimDto MapToDto(AdminClaim claim, Dictionary<Guid, string> userMap) => new AdminClaimDto
     {
         Id = claim.Id,
         ClaimId = claim.ClaimId,
         UserId = claim.UserId,
-        CustomerName = claim.CustomerName,
+        CustomerName = (userMap.TryGetValue(claim.UserId, out var name) ? name : claim.CustomerName) ?? "Unknown",
         PolicyNumber = claim.PolicyNumber,
         ClaimNumber = claim.ClaimNumber,
         ClaimAmount = claim.ClaimAmount,

@@ -242,6 +242,37 @@ public class ClaimManagementService : IClaimManagementService
         return Result.Success();
     }
 
+    public async Task<Result<int>> ReplayClaimSubmittedEventsAsync()
+    {
+        var claims = await _claimRepository.GetAllClaimsAsync();
+        int count = 0;
+
+        foreach (var claim in claims)
+        {
+            var policy = await _claimRepository.GetValidPolicyAsync(claim.PolicyId);
+            var policyNumber = policy?.PolicyNumber ?? "Unknown";
+            var customerName = policy?.CustomerName ?? "Unknown";
+
+            var claimSubmittedEvent = new ClaimSubmittedEvent(
+                claim.Id, 
+                claim.PolicyId, 
+                claim.UserId, 
+                policyNumber, 
+                claim.ClaimNumber, 
+                claim.ClaimAmount, 
+                claim.IncidentDate, 
+                claim.Description, 
+                claim.Status,
+                claim.Status,
+                customerName);
+
+            await _publishEndpoint.Publish(claimSubmittedEvent);
+            count++;
+        }
+
+        return Result<int>.Success(count);
+    }
+
     private async Task RecordHistoryAsync(Claim claim, string oldStatus, string newStatus, Guid changedBy, string remarks)
     {
         var history = new ClaimHistory
