@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { ClaimService } from '../../../services/claim.service';
 import { LocaleService } from '../../../services/locale.service';
 import { AdminClaim, PagedResult } from '../../../models/models';
+import { NotificationService } from '../../../services/notification.service';
 
 interface ClaimDocument {
   id: number;
@@ -25,6 +26,7 @@ interface ClaimDocument {
 export class ManageClaimsComponent implements OnInit {
   private claimService = inject(ClaimService);
   private http = inject(HttpClient);
+  private notify = inject(NotificationService);
   locale = inject(LocaleService);
 
   claims: AdminClaim[] = [];
@@ -125,15 +127,17 @@ export class ManageClaimsComponent implements OnInit {
 
     obs.subscribe({
       next: () => {
+        const actionLabel = this.targetAction === 'approve' ? 'Approved' : this.targetAction === 'reject' ? 'Rejected' : 'Moved to Review';
         localStorage.removeItem(this.getDraftKey());
         this.processing = false;
+        this.notify.success(`Claim ${actionLabel}`, `The claim status has been updated successfully.`);
         this.cancelProcess();
         this.loadClaims();
         this.closeDetail();
       },
       error: (err) => {
         this.processing = false;
-        alert('Operation failed: ' + (err.error?.errorMessage || 'Unknown error'));
+        this.notify.error('Operation Failed', err.error?.errorMessage || 'Unknown error');
       }
     });
   }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { PolicyService } from '../../../services/policy.service';
 import { LocaleService } from '../../../services/locale.service';
 import { AdminPolicy, PagedResult } from '../../../models/models';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-manage-policies',
@@ -14,6 +15,7 @@ import { AdminPolicy, PagedResult } from '../../../models/models';
 })
 export class ManagePoliciesComponent implements OnInit {
   private policyService = inject(PolicyService);
+  private notify = inject(NotificationService);
   locale = inject(LocaleService);
 
   policies: AdminPolicy[] = [];
@@ -45,8 +47,11 @@ export class ManagePoliciesComponent implements OnInit {
   cancelPolicy(id: string): void {
     if (confirm('Are you sure you want to cancel this policy? This cannot be undone.')) {
       this.policyService.adminCancelPolicy(id).subscribe({
-        next: () => this.loadPolicies(),
-        error: (err: any) => alert('Failed to cancel policy: ' + (err.error?.errorMessage || 'Unknown error'))
+        next: () => {
+          this.notify.success('Policy Cancelled', 'The insurance policy has been successfully terminated.');
+          this.loadPolicies();
+        },
+        error: (err: any) => this.notify.error('Action Failed', err.error?.errorMessage || 'Unknown error')
       });
     }
   }

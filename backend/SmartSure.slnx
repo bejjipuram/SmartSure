@@ -33,4 +33,10 @@
     <Project Path="shared/SmartSure.Shared.Infrastructure/SmartSure.Shared.Infrastructure.csproj" />
     <Project Path="shared/SmartSure.Shared.Security/SmartSure.Shared.Security.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SmartSure.Admin.Tests/SmartSure.Admin.Tests.csproj" />
+    <Project Path="tests/SmartSure.Claims.Tests/SmartSure.Claims.Tests.csproj" />
+    <Project Path="tests/SmartSure.Identity.Tests/SmartSure.Identity.Tests.csproj" />
+    <Project Path="tests/SmartSure.Policy.Tests/SmartSure.Policy.Tests.csproj" />
+  </Folder>
 </Solution>

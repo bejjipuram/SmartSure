@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { PagedResult } from '../../../models/models';
+import { NotificationService } from '../../../services/notification.service';
 
 interface AdminUser {
   id: number;
@@ -163,6 +164,7 @@ interface AdminUser {
 })
 export class ManageUsersComponent implements OnInit {
   private http = inject(HttpClient);
+  private notify = inject(NotificationService);
 
   users: AdminUser[] = [];
   searchTerm = '';
@@ -200,16 +202,27 @@ export class ManageUsersComponent implements OnInit {
     if (!this.selectedUser) return;
     this.saving = true;
     this.http.put(`/api/auth/users/${this.selectedUser.userId}/roles`, { roleName: this.newRole }).subscribe({
-      next: () => { this.showRoleModal = false; this.saving = false; this.loadUsers(); },
-      error: (err) => { alert(err.error?.errorMessage ?? 'Failed to change role'); this.saving = false; }
+      next: () => { 
+        this.showRoleModal = false; 
+        this.saving = false; 
+        this.notify.success('Role Updated', `Permissions for ${this.selectedUser?.fullName} have been synchronized.`);
+        this.loadUsers(); 
+      },
+      error: (err) => { 
+        this.notify.error('Update Failed', err.error?.errorMessage ?? 'Failed to change role'); 
+        this.saving = false; 
+      }
     });
   }
 
   deleteUser(userId: string): void {
     if (!confirm('Deactivate this user?')) return;
     this.http.delete(`/api/admin/users/${userId}`).subscribe({
-      next: () => this.loadUsers(),
-      error: (err) => alert('Failed: ' + (err.error?.errorMessage ?? 'Unknown error'))
+      next: () => {
+        this.notify.success('Account Deactivated', 'The user session has been terminated and access revoked.');
+        this.loadUsers();
+      },
+      error: (err) => this.notify.error('Action Failed', err.error?.errorMessage ?? 'Unknown error')
     });
   }
 

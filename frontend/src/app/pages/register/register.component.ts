@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
-import { COUNTRY_CODES } from '../../models/country-codes';
+// import { COUNTRY_CODES } from '../../models/country-codes';
 
 @Component({
   selector: 'app-register',
@@ -121,7 +121,7 @@ export class RegisterComponent {
   showPassword = false;
   loading = false;
   error = '';
-  countryCodes = COUNTRY_CODES;
+  // countryCodes = COUNTRY_CODES;
 
   constructor(private auth: AuthService, private router: Router) {}
 

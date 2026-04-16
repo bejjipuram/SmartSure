@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PolicyService } from '../../../services/policy.service';
 import { InsuranceType, InsuranceSubType } from '../../../models/models';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-manage-insurance',
@@ -175,6 +176,7 @@ import { InsuranceType, InsuranceSubType } from '../../../models/models';
 })
 export class ManageInsuranceComponent implements OnInit {
   private policyService = inject(PolicyService);
+  private notify = inject(NotificationService);
 
   insuranceTypes: (InsuranceType & { subTypes: InsuranceSubType[] })[] = [];
   loading = true;
@@ -226,15 +228,18 @@ export class ManageInsuranceComponent implements OnInit {
 
     obs.subscribe({
       next: () => { this.closeModals(); this.loadTypes(); },
-      error: (err) => { alert(err.error?.errorMessage ?? 'Failed'); this.saving = false; }
+      error: (err) => { this.notify.error('Action Failed', err.error?.errorMessage ?? 'Failed'); this.saving = false; }
     });
   }
 
   deleteType(id: number): void {
     if (!confirm('Deactivate this insurance type?')) return;
     this.policyService.deleteInsuranceType(id).subscribe({
-      next: () => this.loadTypes(),
-      error: (err) => alert(err.error?.errorMessage ?? 'Failed')
+      next: () => {
+        this.notify.success('Category Deactivated', 'The insurance category has been removed from active lookup.');
+        this.loadTypes();
+      },
+      error: (err) => this.notify.error('Action Failed', err.error?.errorMessage ?? 'Failed')
     });
   }
 
@@ -260,15 +265,18 @@ export class ManageInsuranceComponent implements OnInit {
 
     obs.subscribe({
       next: () => { this.closeModals(); this.loadTypes(); },
-      error: (err) => { alert(err.error?.errorMessage ?? 'Failed'); this.saving = false; }
+      error: (err) => { this.notify.error('Action Failed', err.error?.errorMessage ?? 'Failed'); this.saving = false; }
     });
   }
 
   deleteSubType(id: number): void {
     if (!confirm('Deactivate this subtype?')) return;
     this.policyService.deleteInsuranceSubType(id).subscribe({
-      next: () => this.loadTypes(),
-      error: (err) => alert(err.error?.errorMessage ?? 'Failed')
+      next: () => {
+        this.notify.success('Plan Deactivated', 'The specific insurance plan has been offline.');
+        this.loadTypes();
+      },
+      error: (err) => this.notify.error('Action Failed', err.error?.errorMessage ?? 'Failed')
     });
   }
 
