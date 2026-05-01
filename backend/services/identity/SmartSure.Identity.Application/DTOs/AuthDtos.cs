@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SmartSure.Identity.Application.DTOs;
 
@@ -13,11 +14,11 @@ public record LoginDto(
     [Required] string Password);
 
 public record LoginResponseDto(
-    string AccessToken, 
-    string RefreshToken, 
-    string Email, 
-    string FullName, 
-    string[] Roles);
+    [property: JsonPropertyName("accessToken")] string AccessToken,
+    [property: JsonPropertyName("refreshToken")] string RefreshToken,
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("fullName")] string FullName,
+    [property: JsonPropertyName("roles")] string[] Roles);
 
 public record RefreshTokenDto(
     [Required] string RefreshToken);
