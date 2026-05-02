@@ -1,0 +1,83 @@
+services:
+
+  identity-service:
+    build:
+      context: .
+      dockerfile: backend/services/identity/SmartSure.Identity.API/Dockerfile
+    container_name: identity-service
+    ports:
+      - "5001:5001"
+    environment:
+      - ASPNETCORE_URLS=http://+:5001
+      - ConnectionStrings__Default=Server=sqlserver,1433;Database=IdentityDB;User Id=sa;Password=${SQL_SA_PASSWORD}
+      - RabbitMQ__Host=rabbitmq
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    networks:
+      - smartsure-network
+
+  admin-service:
+    build:
+      context: .
+      dockerfile: backend/services/admin/SmartSure.Admin.API/Dockerfile
+    container_name: admin-service
+    ports:
+      - "5113:5113"
+    environment:
+      - ASPNETCORE_URLS=http://+:5113
+      - ConnectionStrings__Default=Server=sqlserver,1433;Database=AdminDB;User Id=sa;Password=${SQL_SA_PASSWORD}
+      - RabbitMQ__Host=rabbitmq
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    networks:
+      - smartsure-network
+
+  policy-service:
+    build:
+      context: .
+      dockerfile: backend/services/policy/SmartSure.Policy.API/Dockerfile
+    container_name: policy-service
+    ports:
+      - "5152:5152"
+    environment:
+      - ASPNETCORE_URLS=http://+:5152
+      - ConnectionStrings__Default=Server=sqlserver,1433;Database=PolicyDB;User Id=sa;Password=${SQL_SA_PASSWORD}
+    depends_on:
+      - sqlserver
+    networks:
+      - smartsure-network
+
+  claims-service:
+    build:
+      context: .
+      dockerfile: backend/services/claims/SmartSure.Claims.API/Dockerfile
+    container_name: claims-service
+    ports:
+      - "5008:5008"
+    environment:
+      - ASPNETCORE_URLS=http://+:5008
+      - ConnectionStrings__Default=Server=sqlserver,1433;Database=ClaimsDB;User Id=sa;Password=${SQL_SA_PASSWORD}
+    depends_on:
+      - sqlserver
+    networks:
+      - smartsure-network
+
+  ocelot-gateway:
+    build:
+      context: .
+      dockerfile: backend/gateway/SmartSure.Gateway/Dockerfile
+    container_name: ocelot-gateway
+    ports:
+      - "5083:80"
+    depends_on:
+      - identity-service
+      - admin-service
+      - policy-service
+      - claims-service
+    networks:
+      - smartsure-network
+
+networks:
+  smartsure-network:

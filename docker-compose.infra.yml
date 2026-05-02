@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: smartsure-sql
+    restart: always
+    environment:
+      SA_PASSWORD: ${SQL_SA_PASSWORD}
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - smartsure-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: smartsure-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq   # ✅ ADD THIS
+    networks:
+      - smartsure-network
+
+volumes:
+  sql_data:
+  rabbitmq_data:
+
+networks:
+  smartsure-network:

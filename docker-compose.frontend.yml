@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: smartsure-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - ocelot-gateway
+    networks:
+      - smartsure-network
+
+networks:
+  smartsure-network:
+    external: false

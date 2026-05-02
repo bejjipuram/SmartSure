@@ -159,11 +159,19 @@
                 </div>
                 <div class="col-md-6">
                   <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Official License Plate</label>
-                  <input type="text" class="form-control premium-input shadow-sm" [(ngModel)]="vehicle.licensePlate" name="plate" required placeholder="DL-01-CK-9999">
+                  <input type="text" class="form-control premium-input shadow-sm" [(ngModel)]="vehicle.licensePlate" name="plate" required pattern="[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}" minlength="10" maxlength="10" placeholder="e.g. AP16JA2097" #plateField="ngModel">
+                  <div *ngIf="plateField.invalid && plateField.dirty" class="text-danger x-small mt-1">
+                    <span *ngIf="plateField.errors?.['required']">License plate is required.</span>
+                    <span *ngIf="plateField.errors?.['pattern'] || plateField.errors?.['minlength'] || plateField.errors?.['maxlength']">Format: 2 letters, 2 digits, 2 letters, 4 digits (e.g. AP16JA2097).</span>
+                  </div>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Chassis Number / VIN</label>
-                  <input type="text" class="form-control premium-input shadow-sm" [(ngModel)]="vehicle.vin" name="vin" required placeholder="Enter 17-alpha-numeric digits">
+                  <input type="text" class="form-control premium-input shadow-sm" [(ngModel)]="vehicle.vin" name="vin" required pattern="[A-HJ-NPR-Z0-9]{17}" minlength="17" maxlength="17" placeholder="Enter 17-alpha-numeric digits" #vinField="ngModel">
+                  <div *ngIf="vinField.invalid && vinField.dirty" class="text-danger x-small mt-1">
+                    <span *ngIf="vinField.errors?.['required']">VIN is required.</span>
+                    <span *ngIf="vinField.errors?.['pattern'] || vinField.errors?.['minlength'] || vinField.errors?.['maxlength']">VIN must be exactly 17 alphanumeric characters (A-H, J-N, P, R-Z, 0-9).</span>
+                  </div>
                 </div>
                 <div class="col-md-12">
                   <label class="form-label text-muted small fw-bold text-uppercase ls-wide">Projected Annual Usage (KM)</label>

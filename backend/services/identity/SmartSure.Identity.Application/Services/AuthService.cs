@@ -310,23 +310,47 @@ public class AuthService : IAuthService
     }
 
     public async Task<Result> ResetPasswordAsync(ResetPasswordDto dto, string resetToken)
+    {
+        var user = await _userRepository.GetByEmailAsync(dto.Email);
+        if (user == null) return Result.Failure("Invalid request.");
+
+        var currentPassword = user.Passwords.OrderByDescending(p => p.LastChangedAt).FirstOrDefault();
+        if (currentPassword == null) return Result.Failure("No password record found.");
+
+        // Prevent reusing the same password
+        if (BCrypt.Net.BCrypt.Verify(dto.NewPassword, currentPassword.PasswordHash))
+            return Result.Failure("New password must not be the same as the previous password.");
+
+        // Password strength validation
+        if (!IsStrongPassword(dto.NewPassword))
+            return Result.Failure("Password must be at least 8 characters and include uppercase, lowercase, number, and special character.");
+
+        currentPassword.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        currentPassword.LastChangedAt = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        await _tokenBlacklist.BlacklistTokenAsync(resetToken, TimeSpan.FromMinutes(15));
+
+        return Result.Success();
+    }
+
+    // Password strength validation helper
+    private bool IsStrongPassword(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+            return false;
+        bool hasUpper = false, hasLower = false, hasDigit = false, hasSpecial = false;
+        foreach (var c in password)
         {
-            var user = await _userRepository.GetByEmailAsync(dto.Email);
-            if (user == null) return Result.Failure("Invalid request.");
-
-            var currentPassword = user.Passwords.OrderByDescending(p => p.LastChangedAt).FirstOrDefault();
-            if (currentPassword == null) return Result.Failure("No password record found.");
-
-            currentPassword.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-            currentPassword.LastChangedAt = DateTime.UtcNow;
-
-            await _userRepository.UpdateAsync(user);
-            await _unitOfWork.SaveChangesAsync();
-
-            await _tokenBlacklist.BlacklistTokenAsync(resetToken, TimeSpan.FromMinutes(15));
-
-            return Result.Success();
+            if (char.IsUpper(c)) hasUpper = true;
+            else if (char.IsLower(c)) hasLower = true;
+            else if (char.IsDigit(c)) hasDigit = true;
+            else if (!char.IsLetterOrDigit(c)) hasSpecial = true;
         }
+        return hasUpper && hasLower && hasDigit && hasSpecial;
+    }
 
     public async Task<Result<UserProfileDto>> GetProfileAsync(Guid userId)
     {

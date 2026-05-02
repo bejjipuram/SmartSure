@@ -160,11 +160,22 @@ export class ForgotPasswordComponent {
       this.error = 'Passwords do not match.';
       return;
     }
+    if (!this.isStrongPassword(this.newPassword)) {
+      this.error = 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.';
+      return;
+    }
+    // Optionally, prevent using the same password as before (client-side, best effort)
+    // This check is best done on the backend, but you can cache the old password if you want to block it here too.
     this.error = '';
     this.loading = true;
     this.auth.resetPassword(this.email, this.newPassword, this.resetToken).subscribe({
       next: () => { this.step = 'done'; this.loading = false; },
       error: (err) => { this.error = err?.error?.message ?? 'Failed to reset password.'; this.loading = false; }
     });
+  }
+
+  isStrongPassword(password: string): boolean {
+    // At least 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(password);
   }
 }
