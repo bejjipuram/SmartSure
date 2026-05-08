@@ -2,7 +2,6 @@
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SmartSure.Admin.Application.DTOs;
-
 namespace SmartSure.Admin.API.Services;
 
 public static class ReportPdfGenerator

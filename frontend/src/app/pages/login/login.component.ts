@@ -71,7 +71,6 @@ import { AuthService } from '../../services/auth.service';
               </button>
             </div>
           </div>
-
           <div class="d-flex justify-content-end mb-4">
             <a routerLink="/forgot-password" class="x-small text-primary fw-bold text-decoration-none ls-wide text-uppercase">
               Recover Access?
