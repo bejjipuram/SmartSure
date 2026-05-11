@@ -50,6 +50,8 @@ public class UserRegisteredConsumer : IConsumer<UserRegisteredEvent>
                 Email = message.Email,
                 Role = message.Role,
                 IsActive = true,
+                // Backward compatibility: some DBs still have LastLogin as NOT NULL.
+                LastLogin = message.CreatedAt,
                 CreatedAt = message.CreatedAt
             };
 
