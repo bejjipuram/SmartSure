@@ -27,7 +27,7 @@ interface NavItem {
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
-        <span class="logo-text">SmartSure</span>
+        <span class="logo-text">SOULSure</span>
       </div>
 
       <nav class="sidebar-nav mt-3">
